@@ -48,6 +48,10 @@ export default function Manage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [search, setSearch] = useState("");
 
+  const [single, setSingle] = useState<Row>({ name: "", password: "", team: "" });
+  const [singleMsg, setSingleMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [savingSingle, setSavingSingle] = useState(false);
+
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [adminName, setAdminName] = useState("");
   const [adminPass, setAdminPass] = useState("");
@@ -108,6 +112,32 @@ export default function Manage() {
     loadPlayers();
   }
 
+  async function addSingle(e: React.FormEvent) {
+    e.preventDefault();
+    setSingleMsg(null);
+    if (!single.name.trim() || !single.password.trim()) {
+      setSingleMsg({ ok: false, text: "Nome e password sono obbligatori" });
+      return;
+    }
+    const exists = players.some((p) => p.name.toLowerCase() === single.name.trim().replace(/\s+/g, " ").toLowerCase());
+    if (exists && !confirm(`${single.name.trim()} esiste già. Vuoi aggiornare password e squadra?`)) return;
+    setSavingSingle(true);
+    const res = await fetch("/api/admin/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rows: [single] }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setSavingSingle(false);
+    if (!res.ok || data.errors?.length) {
+      setSingleMsg({ ok: false, text: data.errors?.[0] || data.error || "Errore" });
+      return;
+    }
+    setSingleMsg({ ok: true, text: data.created ? `${single.name.trim()} creato` : `${single.name.trim()} aggiornato` });
+    setSingle({ name: "", password: "", team: single.team });
+    loadPlayers();
+  }
+
   async function deletePlayer(p: Player) {
     if (!confirm(`Eliminare ${p.name}?`)) return;
     await fetch(`/api/admin/players?id=${p.id}`, { method: "DELETE" });
@@ -146,12 +176,55 @@ export default function Manage() {
     loadAdmins();
   }
 
+  const teams = Array.from(new Set(players.map((p) => p.team).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+
   const filtered = players.filter(
     (p) => !search || `${p.name} ${p.team}`.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <div className="scroll" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", gap: 12 }}>
+      <section className="card section">
+        <h3>Aggiungi un utente</h3>
+        <form className="section" onSubmit={addSingle}>
+          <input
+            className="input"
+            placeholder="Nome"
+            autoCapitalize="words"
+            value={single.name}
+            onChange={(e) => setSingle({ ...single, name: e.target.value })}
+          />
+          <input
+            className="input"
+            placeholder="Password"
+            autoCapitalize="none"
+            autoCorrect="off"
+            value={single.password}
+            onChange={(e) => setSingle({ ...single, password: e.target.value })}
+          />
+          <input
+            className="input"
+            placeholder="Squadra"
+            list="teams-list"
+            value={single.team}
+            onChange={(e) => setSingle({ ...single, team: e.target.value })}
+          />
+          <datalist id="teams-list">
+            {teams.map((t) => (
+              <option key={t} value={t} />
+            ))}
+          </datalist>
+          {singleMsg && (
+            <p className={singleMsg.ok ? "" : "error"} style={{ margin: 0, fontWeight: 900 }}>
+              {singleMsg.text}
+            </p>
+          )}
+          <button className="btn btn-gold" disabled={savingSingle}>
+            {savingSingle ? "Salvo..." : "Aggiungi utente"}
+          </button>
+        </form>
+      </section>
+
       <section className="card section">
         <h3>Carica utenti da CSV</h3>
         <p className="muted" style={{ margin: 0 }}>
