@@ -85,7 +85,6 @@ input {
   max-height: calc(var(--footer-h) - 16px);
   max-width: 60%;
   object-fit: contain;
-  filter: brightness(0) invert(1);
 }
 .footer-text {
   font-weight: 900;
@@ -670,9 +669,9 @@ input {
   text-align: center;
   color: var(--cream-dark);
 }
-.board li:nth-child(1) .rank { color: #ffd700; }
-.board li:nth-child(2) .rank { color: #e0e0e0; }
-.board li:nth-child(3) .rank { color: #d9955b; }
+.board .rank-1 { color: #ffd700; }
+.board .rank-2 { color: #e0e0e0; }
+.board .rank-3 { color: #d9955b; }
 .board .who {
   min-width: 0;
 }
@@ -758,4 +757,42 @@ input {
 }
 .topbar .title {
   font-size: 1.2rem;
+}
+
+.view-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: rgba(61, 8, 16, 0.7);
+  padding: 4px;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+.view-toggle button {
+  border: none;
+  background: transparent;
+  color: var(--cream);
+  padding: 10px 4px;
+  border-radius: 10px;
+  font-weight: 900;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.view-toggle button.active {
+  background: var(--gold);
+  color: var(--bordeaux-deep);
+}
+.team-bar {
+  grid-column: 2 / 4;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(243, 230, 207, 0.15);
+  overflow: hidden;
+}
+.team-bar span {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  transition: width 0.6s ease;
 }

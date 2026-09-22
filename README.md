@@ -29,7 +29,7 @@ Vedi [`.env.example`](.env.example). Per lo sviluppo locale copia il file in `.e
 ## 3. Logo
 
 Carica il logo in `public/logo/logo.png` (vedi [`public/logo/README.md`](public/logo/README.md)).
-Viene mostrato in bianco nel footer.
+Viene mostrato nel footer con i colori originali.
 
 ## 4. CSV utenti
 

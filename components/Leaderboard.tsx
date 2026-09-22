@@ -7,6 +7,7 @@ import { PLAYER_COLUMNS, type Player } from "@/lib/types";
 export default function Leaderboard() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<"players" | "teams">("players");
   const [filter, setFilter] = useState<string>("__all");
   const [flash, setFlash] = useState<Record<string, number>>({});
   const flashTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -61,29 +62,40 @@ export default function Leaderboard() {
     };
   }, []);
 
+
   const teams = useMemo(
     () => Array.from(new Set(players.map((p) => p.team).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
     [players]
   );
 
-  const rows = useMemo(() => {
-    if (filter === "__teams") {
-      const totals = new Map<string, { points: number; count: number }>();
+  type BoardRow = { id: string; title: string; sub: string; points: number; flash: boolean };
+
+  const rows = useMemo<BoardRow[]>(() => {
+    if (view === "teams") {
+      const totals = new Map<string, { points: number; count: number; flash: boolean }>();
       for (const p of players) {
         const key = p.team || "Senza squadra";
-        const t = totals.get(key) ?? { points: 0, count: 0 };
+        const t = totals.get(key) ?? { points: 0, count: 0, flash: false };
         t.points += p.points;
         t.count += 1;
+        t.flash ||= Boolean(flash[p.id]);
         totals.set(key, t);
       }
-      return Array.from(totals, ([team, t]) => ({ id: team, title: team, sub: `${t.count} giocatori`, points: t.points }))
-        .sort((a, b) => b.points - a.points);
+      return Array.from(totals, ([team, t]) => ({
+        id: `team:${team}`,
+        title: team,
+        sub: `${t.count} ${t.count === 1 ? "giocatore" : "giocatori"}`,
+        points: t.points,
+        flash: t.flash,
+      })).sort((a, b) => b.points - a.points || a.title.localeCompare(b.title));
     }
     return players
       .filter((p) => filter === "__all" || p.team === filter)
       .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name))
-      .map((p) => ({ id: p.id, title: p.name, sub: p.team, points: p.points }));
-  }, [players, filter]);
+      .map((p) => ({ id: p.id, title: p.name, sub: p.team, points: p.points, flash: Boolean(flash[p.id]) }));
+  }, [players, filter, view, flash]);
+
+  const maxPoints = Math.max(1, ...rows.map((r) => r.points));
 
   // Pari merito: stessa posizione per stesso punteggio
   let lastPoints = -1;
@@ -91,13 +103,22 @@ export default function Leaderboard() {
 
   return (
     <>
-      <div className="seg">
-        <button className={filter === "__all" ? "active" : ""} onClick={() => setFilter("__all")}>Tutti</button>
-        <button className={filter === "__teams" ? "active" : ""} onClick={() => setFilter("__teams")}>Squadre</button>
-        {teams.map((t) => (
-          <button key={t} className={filter === t ? "active" : ""} onClick={() => setFilter(t)}>{t}</button>
-        ))}
+      <div className="view-toggle">
+        <button className={view === "players" ? "active" : ""} onClick={() => setView("players")}>
+          Giocatori
+        </button>
+        <button className={view === "teams" ? "active" : ""} onClick={() => setView("teams")}>
+          Squadre
+        </button>
       </div>
+      {view === "players" && teams.length > 0 && (
+        <div className="seg">
+          <button className={filter === "__all" ? "active" : ""} onClick={() => setFilter("__all")}>Tutti</button>
+          {teams.map((t) => (
+            <button key={t} className={filter === t ? "active" : ""} onClick={() => setFilter(t)}>{t}</button>
+          ))}
+        </div>
+      )}
       <div className="scroll" style={{ flex: 1, minHeight: 0 }}>
         {loading ? (
           <p className="muted">Caricamento...</p>
@@ -111,13 +132,18 @@ export default function Leaderboard() {
                 lastPoints = r.points;
               }
               return (
-                <li key={r.id} className={flash[r.id] ? "flash" : ""}>
-                  <span className="rank">{lastRank}</span>
+                <li key={r.id} className={r.flash ? "flash" : ""}>
+                  <span className={`rank rank-${lastRank}`}>{lastRank}</span>
                   <span className="who">
                     <strong>{r.title}</strong>
                     {r.sub && <span>{r.sub}</span>}
                   </span>
                   <span className="pts">{r.points}</span>
+                  {view === "teams" && (
+                    <span className="team-bar">
+                      <span style={{ width: `${(r.points / maxPoints) * 100}%` }} />
+                    </span>
+                  )}
                 </li>
               );
             })}
