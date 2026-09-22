@@ -40,6 +40,14 @@ alter table public.credentials add column if not exists admin_kind text
 
 create unique index if not exists credentials_username_key on public.credentials (lower(username));
 
+-- Impostazioni dell'app (es. password del super admin cambiata dall'app). Mai accessibili dal browser.
+create table if not exists public.app_settings (
+  key         text primary key,
+  value       text not null,
+  updated_at  timestamptz not null default now()
+);
+alter table public.app_settings enable row level security;
+
 -- Row Level Security
 alter table public.players enable row level security;
 alter table public.credentials enable row level security;

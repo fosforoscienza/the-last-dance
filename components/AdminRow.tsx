@@ -63,6 +63,7 @@ export default function AdminRow({
     return (
       <form className="admin-row section" onSubmit={save}>
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome admin" />
+        {!isMe && (
         <input
           className="input"
           value={password}
@@ -71,8 +72,9 @@ export default function AdminRow({
           autoCapitalize="none"
           autoCorrect="off"
         />
+        )}
         {isMe ? (
-          <small className="muted">Non puoi cambiare il tuo ruolo.</small>
+          <small className="muted">Non puoi cambiare il tuo ruolo né la tua password.</small>
         ) : (
           <RolePicker value={role} onChange={setRole} withPlayer />
         )}
@@ -122,7 +124,7 @@ export default function AdminRow({
           </>
         )}
       </div>
-      {admin.main && <small className="muted">Nome e password si cambiano nelle impostazioni di Vercel.</small>}
+      {admin.main && <small className="muted">Solo l&apos;admin principale può cambiare questa password (tasto Password in alto).</small>}
     </div>
   );
 }

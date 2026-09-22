@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { timingSafeEqual } from "crypto";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { createSession } from "@/lib/session";
 import { envAdminName, escapeLike, normalizeName, sameName } from "@/lib/util";
-
-function safeEqual(a: string, b: string) {
-  const ba = Buffer.from(a);
-  const bb = Buffer.from(b);
-  return ba.length === bb.length && timingSafeEqual(ba, bb);
-}
+import { checkMainPassword } from "@/lib/main-admin";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
@@ -22,9 +16,8 @@ export async function POST(req: Request) {
 
   // Admin principale da variabili d'ambiente
   const envUser = envAdminName();
-  const envPass = process.env.ADMIN_PASSWORD?.trim();
-  if (envUser && envPass && sameName(username, envUser)) {
-    if (safeEqual(password, envPass)) {
+  if (envUser && sameName(username, envUser)) {
+    if (await checkMainPassword(password)) {
       await createSession({ role: "admin", name: envUser, credId: "env" });
       return NextResponse.json({ role: "admin" });
     }

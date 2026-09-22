@@ -28,7 +28,7 @@ export default function AdminApp({ adminName, kind, isMain }: { adminName: strin
           <span className="muted">{adminName}</span>
         </div>
         <div className="row">
-          <ChangePassword isMain={isMain} />
+          {isMain && <ChangePassword />}
           <LogoutButton />
         </div>
       </div>

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-export default function ChangePassword({ isMain }: { isMain: boolean }) {
+// Solo per il super admin (admin principale)
+export default function ChangePassword() {
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
@@ -62,12 +63,6 @@ export default function ChangePassword({ isMain }: { isMain: boolean }) {
                 ✕
               </button>
             </div>
-            {isMain ? (
-              <p className="muted" style={{ margin: 0 }}>
-                Sei l&apos;admin principale: la tua password si cambia su Vercel, in Settings → Environment Variables →
-                ADMIN_PASSWORD, poi serve un Redeploy.
-              </p>
-            ) : (
               <form className="section" onSubmit={save}>
                 <label className="field">
                   <span>Password attuale</span>
@@ -93,7 +88,6 @@ export default function ChangePassword({ isMain }: { isMain: boolean }) {
                   {busy ? "Salvo..." : "Salva nuova password"}
                 </button>
               </form>
-            )}
           </div>
         </div>
       )}

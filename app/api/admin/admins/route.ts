@@ -5,6 +5,7 @@ import { envAdminName, escapeLike, isEnvAdminName, normalizeName, sameName } fro
 import { decryptPassword, passwordFields, writeWithEncFallback } from "@/lib/password";
 import { isAdminKind, toAdminKind } from "@/lib/roles";
 import { changeRole, DB_UPDATE_NEEDED, isMissingKindColumn } from "@/lib/role-change";
+import { readMainPassword } from "@/lib/main-admin";
 
 type Cred = { id: string; username: string; password_enc?: string | null; admin_kind?: string | null };
 
@@ -29,7 +30,7 @@ export async function GET() {
   if (!me) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   const envName = envAdminName();
   const main = envName
-    ? { id: "env", username: envName, password: process.env.ADMIN_PASSWORD?.trim() ?? null, kind: "direttore", main: true }
+    ? { id: "env", username: envName, password: await readMainPassword(), kind: "direttore", main: true }
     : null;
   const others = (await listAdmins()).map((a) => ({
     id: a.id,
@@ -83,6 +84,10 @@ export async function PATCH(req: Request) {
     update.username = username;
   }
   if (body.password !== undefined) {
+    // Solo il super admin può cambiare la propria password (dal tasto Password)
+    if (id === me.credId) {
+      return NextResponse.json({ error: "Non puoi cambiare la tua password" }, { status: 403 });
+    }
     const password = String(body.password).trim();
     if (password.length < 4) return NextResponse.json({ error: "Password di almeno 4 caratteri" }, { status: 400 });
     Object.assign(update, await passwordFields(password, 10));
