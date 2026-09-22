@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/session";
 import { escapeLike, isEnvAdminName, normalizeName } from "@/lib/util";
 import { passwordFields, writeWithEncFallback } from "@/lib/password";
 
-type Row = { name: string; password: string; team: string };
+type Row = { name: string; password: string; team?: string };
 
 export const maxDuration = 60;
 
@@ -24,7 +24,8 @@ export async function POST(req: Request) {
   for (const raw of rows) {
     const name = normalizeName(raw.name);
     const password = String(raw.password ?? "").trim();
-    const team = normalizeName(raw.team);
+    // Squadra solo se presente nel file: altrimenti quella esistente non viene toccata
+    const team = raw.team === undefined ? undefined : normalizeName(raw.team);
     if (!name || !password) {
       errors.push(`Riga senza nome o password${name ? `: ${name}` : ""}`);
       continue;
@@ -47,12 +48,12 @@ export async function POST(req: Request) {
         continue;
       }
       await writeWithEncFallback(pw, (f) => db.from("credentials").update(f).eq("id", existing.id));
-      await db.from("players").update({ team, name }).eq("id", existing.player_id);
+      await db.from("players").update(team === undefined ? { name } : { name, team }).eq("id", existing.player_id);
       updated++;
       continue;
     }
 
-    const { data: player, error: pErr } = await db.from("players").insert({ name, team }).select("id").single();
+    const { data: player, error: pErr } = await db.from("players").insert({ name, team: team ?? "" }).select("id").single();
     if (pErr || !player) {
       errors.push(`${name}: impossibile creare l'utente`);
       continue;

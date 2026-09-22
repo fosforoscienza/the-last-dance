@@ -33,7 +33,10 @@ Viene mostrato nel footer con i colori originali.
 
 ## 4. CSV utenti
 
-Tre colonne: **nome, password, squadra** (intestazione facoltativa, separatore `,` o `;`).
+- Colonna **A**: `nome utente`, colonna **B**: `password` (la prima riga di intestazione è facoltativa, separatore `,` o `;`).
+- Tutte le altre colonne vengono ignorate, tranne una colonna intitolata `squadra` (o `team`), se presente.
+- Se un nome esiste già, la password viene aggiornata; punti, ticket e (senza colonna squadra) la squadra restano invariati.
+
 Esempio: [`public/esempio-utenti.csv`](public/esempio-utenti.csv).
 L'utente accede con il nome (maiuscole/minuscole indifferenti) e la password del CSV.
 

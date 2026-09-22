@@ -6,36 +6,37 @@ import { supabaseBrowser } from "@/lib/supabase-browser";
 import { PLAYER_COLUMNS, type Player } from "@/lib/types";
 import EditUser from "./EditUser";
 
-type Row = { name: string; password: string; team: string };
+type Row = { name: string; password: string; team?: string };
 type Admin = { id: string; username: string };
 
 const CHUNK = 50;
-const NAME_KEYS = ["nome", "name", "nomi", "utente", "username"];
-const PASS_KEYS = ["password", "pass", "pwd", "passwords"];
-const TEAM_KEYS = ["squadra", "team", "squadre", "gruppo"];
+const NAME_KEYS = ["nome utente", "nomeutente", "nome", "utente", "username", "user name", "name"];
+const PASS_KEYS = ["password", "pass", "pwd", "psw"];
+const TEAM_KEYS = ["squadra", "team", "gruppo"];
 
+const cleanHeader = (h: string) => h.toLowerCase().replace(/[_\-.]+/g, " ").replace(/\s+/g, " ").trim();
+
+// Legge nome utente (colonna A) e password (colonna B). Le altre colonne vengono ignorate,
+// tranne un'eventuale colonna intitolata "squadra" (o "team").
 function parseCsv(text: string): Row[] {
-  const parsed = Papa.parse<string[]>(text.replace(/^﻿/, ""), { skipEmptyLines: true });
+  const parsed = Papa.parse<string[]>(text.replace(/^\uFEFF/, ""), { skipEmptyLines: "greedy" });
   const lines = parsed.data.map((r) => r.map((c) => String(c ?? "").trim()));
   if (lines.length === 0) return [];
 
-  let nameIdx = 0;
-  let passIdx = 1;
-  let teamIdx = 2;
-  const header = lines[0].map((h) => h.toLowerCase());
-  const hasHeader = header.some((h) => [...NAME_KEYS, ...PASS_KEYS, ...TEAM_KEYS].includes(h));
-  if (hasHeader) {
-    const find = (keys: string[], fallback: number) => {
-      const i = header.findIndex((h) => keys.includes(h));
-      return i === -1 ? fallback : i;
-    };
-    nameIdx = find(NAME_KEYS, 0);
-    passIdx = find(PASS_KEYS, 1);
-    teamIdx = find(TEAM_KEYS, 2);
-  }
+  const header = lines[0].map(cleanHeader);
+  const hasHeader =
+    NAME_KEYS.includes(header[0] ?? "") ||
+    PASS_KEYS.includes(header[1] ?? "") ||
+    header.some((h) => TEAM_KEYS.includes(h));
+  const teamIdx = hasHeader ? header.findIndex((h, i) => i > 1 && TEAM_KEYS.includes(h)) : -1;
+
   return lines
     .slice(hasHeader ? 1 : 0)
-    .map((r) => ({ name: r[nameIdx] ?? "", password: r[passIdx] ?? "", team: r[teamIdx] ?? "" }))
+    .map((r) => {
+      const row: Row = { name: r[0] ?? "", password: r[1] ?? "" };
+      if (teamIdx !== -1) row.team = r[teamIdx] ?? "";
+      return row;
+    })
     .filter((r) => r.name || r.password);
 }
 
@@ -209,7 +210,7 @@ export default function Manage() {
             className="input"
             placeholder="Squadra"
             list="teams-list"
-            value={single.team}
+            value={single.team ?? ""}
             onChange={(e) => setSingle({ ...single, team: e.target.value })}
           />
           <datalist id="teams-list">
@@ -231,8 +232,9 @@ export default function Manage() {
       <section className="card section">
         <h3>Carica utenti da CSV</h3>
         <p className="muted" style={{ margin: 0 }}>
-          Colonne: <b>nome</b>, <b>password</b>, <b>squadra</b> (con o senza intestazione, separatore , o ;). Se un nome
-          esiste già, password e squadra vengono aggiornate.
+          Colonna A: <b>nome utente</b>, colonna B: <b>password</b> (prima riga di intestazione facoltativa, separatore , o
+          ;). Le altre colonne vengono ignorate, tranne una colonna intitolata <b>squadra</b>. Se un nome esiste già, la
+          password viene aggiornata e i punti restano invariati.
         </p>
         <label className="file-label">
           {fileName || "Scegli file CSV"}
@@ -241,7 +243,7 @@ export default function Manage() {
         {rows.length > 0 && (
           <>
             <p className="muted" style={{ margin: 0 }}>
-              {rows.length} utenti trovati. Esempio: {rows[0].name} / {rows[0].team || "—"}
+              {rows.length} utenti trovati. Esempio: {rows[0].name}{rows[0].team ? ` / ${rows[0].team}` : ""}
             </p>
             <button className="btn btn-gold" disabled={importing} onClick={runImport}>
               {importing ? "Importo..." : `Importa ${rows.length} utenti`}
