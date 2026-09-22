@@ -23,10 +23,8 @@ export default function AdminApp({ adminName, kind }: { adminName: string; kind:
     <div className="admin">
       <div className="topbar">
         <div>
-          <h1 className="title">Admin</h1>
-          <span className="muted">
-            {adminName} · {kindLabel(kind)}
-          </span>
+          <h1 className="title">{kindLabel(kind)}</h1>
+          <span className="muted">{adminName}</span>
         </div>
         <LogoutButton />
       </div>
