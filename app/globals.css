@@ -637,9 +637,23 @@ input {
   align-items: center;
   justify-content: center;
 }
-.food-option:disabled {
+.food-option.used {
+  background: #bdb6ad;
+}
+.food-option.used svg,
+.food-option.used > span {
   filter: grayscale(1);
   opacity: 0.45;
+}
+.food-used {
+  font-weight: 400;
+  text-transform: none;
+  font-size: 0.7rem;
+  line-height: 1.1;
+  text-align: center;
+  color: var(--bordeaux-deep);
+}
+.food-option:disabled {
   cursor: default;
 }
 

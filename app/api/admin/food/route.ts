@@ -9,12 +9,16 @@ export async function POST(req: Request) {
   if (!(await requireAdmin())) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   const body = await req.json().catch(() => ({}));
   const playerId = String(body.playerId ?? "");
-  const tickets: string[] = Array.isArray(body.tickets) ? body.tickets.filter((t: unknown) => VALID.has(String(t))) : [];
-  if (!playerId || tickets.length === 0) {
+  const pick = (v: unknown): string[] => (Array.isArray(v) ? v.map(String).filter((t) => VALID.has(t)) : []);
+  // tickets: da segnare come usati; restore: da rendere di nuovo validi (errore dell'admin)
+  const tickets = pick(body.tickets);
+  const restore = pick(body.restore);
+  if (!playerId || tickets.length + restore.length === 0) {
     return NextResponse.json({ error: "Seleziona almeno un cibo" }, { status: 400 });
   }
   const update: Partial<Record<TicketKey, boolean>> & { updated_at: string } = { updated_at: new Date().toISOString() };
   for (const t of tickets) update[t as TicketKey] = true;
+  for (const t of restore) update[t as TicketKey] = false;
 
   const { data, error } = await supabaseAdmin()
     .from("players")

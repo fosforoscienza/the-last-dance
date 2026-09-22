@@ -129,6 +129,7 @@ export default function ScanFlow() {
       {mode === "food" && (
         <FoodPicker
           player={player}
+          onRestored={setPlayer}
           onDone={(updated) => {
             setPlayer(updated);
             push({ kind: "food" });
@@ -226,7 +227,15 @@ function PointsPad({ player, onDone }: { player: Player; onDone: (p: Player, req
   );
 }
 
-function FoodPicker({ player, onDone }: { player: Player; onDone: (p: Player) => void }) {
+function FoodPicker({
+  player,
+  onDone,
+  onRestored,
+}: {
+  player: Player;
+  onDone: (p: Player) => void;
+  onRestored: (p: Player) => void;
+}) {
   const [selected, setSelected] = useState<TicketKey[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -252,6 +261,25 @@ function FoodPicker({ player, onDone }: { player: Player; onDone: (p: Player) =>
     }
   }
 
+  async function restore(key: TicketKey, label: string) {
+    if (!window.confirm(`Il ticket "${label}" è già stato usato.\nVuoi renderlo di nuovo valido?`)) return;
+    setBusy(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/food", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerId: player.id, restore: [key] }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Errore");
+      onRestored(data.player);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Errore");
+    }
+    setBusy(false);
+  }
+
   const allUsed = TICKETS.every((t) => player[t.key]);
 
   return (
@@ -263,12 +291,13 @@ function FoodPicker({ player, onDone }: { player: Player; onDone: (p: Player) =>
           return (
             <button
               key={t.key}
-              className={`food-option ${selected.includes(t.key) ? "selected" : ""}`}
-              disabled={used}
-              onClick={() => toggle(t.key)}
+              className={`food-option ${used ? "used" : ""} ${selected.includes(t.key) ? "selected" : ""}`}
+              disabled={busy}
+              onClick={() => (used ? restore(t.key, label) : toggle(t.key))}
             >
               <FoodIcon food={t.food} />
-              <span>{used ? `${label} ✓ usato` : label}</span>
+              <span>{label}</span>
+              {used && <small className="food-used">Usato · tocca per ripristinare</small>}
             </button>
           );
         })}
@@ -280,7 +309,7 @@ function FoodPicker({ player, onDone }: { player: Player; onDone: (p: Player) =>
         disabled={busy || selected.length === 0}
         onClick={confirm}
       >
-        {allUsed ? "Tutti i ticket usati" : busy ? "..." : "Conferma"}
+        {busy ? "..." : allUsed ? "Tutti i ticket usati" : "Conferma"}
       </button>
     </>
   );
