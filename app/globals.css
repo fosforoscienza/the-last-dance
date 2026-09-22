@@ -910,3 +910,39 @@ input {
 .player-view.compact .pad button {
   font-size: clamp(1.2rem, 6vw, 1.8rem);
 }
+
+/* selezione multipla utenti */
+.select-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+  background: var(--bordeaux-deep);
+  border-radius: 12px;
+}
+.list-row.selected {
+  background: rgba(229, 56, 59, 0.18);
+}
+.check {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid rgba(243, 230, 207, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.check.on {
+  background: var(--red);
+  border-color: var(--red);
+}
+.check.on::after {
+  content: "✓";
+  color: #fff;
+  font-weight: 900;
+  font-size: 0.8rem;
+}

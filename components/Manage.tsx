@@ -50,6 +50,9 @@ export default function Manage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deletingMany, setDeletingMany] = useState(false);
 
   const [single, setSingle] = useState<Row>({ name: "", password: "", team: "" });
   const [singleMsg, setSingleMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -145,6 +148,42 @@ export default function Manage() {
     if (!confirm(`Eliminare ${p.name}?`)) return;
     await fetch(`/api/admin/players?id=${p.id}`, { method: "DELETE" });
     setEditing(null);
+    loadPlayers();
+  }
+
+  function toggleSelected(id: string) {
+    setSelected((cur) => {
+      const next = new Set(cur);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function exitSelecting() {
+    setSelecting(false);
+    setSelected(new Set());
+  }
+
+  async function deleteSelected() {
+    const ids = players.filter((p) => selected.has(p.id)).map((p) => p.id);
+    if (ids.length === 0) return;
+    const names = players.filter((p) => selected.has(p.id)).map((p) => p.name);
+    const preview = names.slice(0, 5).join(", ") + (names.length > 5 ? ` e altri ${names.length - 5}` : "");
+    if (!confirm(`Eliminare ${ids.length} ${ids.length === 1 ? "utente" : "utenti"} con punti e ticket?\n${preview}`)) return;
+    setDeletingMany(true);
+    const res = await fetch("/api/admin/players?ids=1", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    });
+    setDeletingMany(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Errore durante l'eliminazione");
+      return;
+    }
+    exitSelecting();
     loadPlayers();
   }
 
@@ -265,21 +304,74 @@ export default function Manage() {
       </section>
 
       <section className="card section">
-        <h3>Utenti ({players.length})</h3>
-        <p className="muted" style={{ margin: 0 }}>Tocca un utente per vedere la password o modificarlo.</p>
+        <div className="topbar">
+          <h3>Utenti ({players.length})</h3>
+          {players.length > 0 &&
+            (selecting ? (
+              <button className="btn btn-ghost btn-small" onClick={exitSelecting}>
+                Annulla
+              </button>
+            ) : (
+              <button className="btn btn-ghost btn-small" onClick={() => setSelecting(true)}>
+                Seleziona
+              </button>
+            ))}
+        </div>
+        <p className="muted" style={{ margin: 0 }}>
+          {selecting
+            ? "Tocca gli utenti da eliminare."
+            : "Tocca un utente per vedere la password o modificarlo."}
+        </p>
         <input className="input" placeholder="Cerca nome o squadra" value={search} onChange={(e) => setSearch(e.target.value)} />
+        {selecting && (
+          <div className="select-bar">
+            {filtered.length > 0 && filtered.every((p) => selected.has(p.id)) ? (
+              <button
+                className="btn btn-ghost btn-small"
+                onClick={() =>
+                  setSelected((cur) => {
+                    const next = new Set(cur);
+                    filtered.forEach((p) => next.delete(p.id));
+                    return next;
+                  })
+                }
+              >
+                Deseleziona {search ? "trovati" : "tutti"}
+              </button>
+            ) : (
+              <button
+                className="btn btn-ghost btn-small"
+                onClick={() => setSelected((cur) => new Set([...cur, ...filtered.map((p) => p.id)]))}
+              >
+                Seleziona {search ? `trovati (${filtered.length})` : `tutti (${filtered.length})`}
+              </button>
+            )}
+            <button
+              className="btn btn-danger btn-small"
+              disabled={selected.size === 0 || deletingMany}
+              onClick={deleteSelected}
+            >
+              {deletingMany ? "Elimino..." : `Elimina (${selected.size})`}
+            </button>
+          </div>
+        )}
         <div>
           {filtered.slice(0, 100).map((p) => (
-            <div className="list-row user-row" key={p.id} onClick={() => setEditing(p.id)}>
-              <span>
+            <div
+              className={`list-row user-row ${selecting && selected.has(p.id) ? "selected" : ""}`}
+              key={p.id}
+              onClick={() => (selecting ? toggleSelected(p.id) : setEditing(p.id))}
+            >
+              {selecting && <span className={`check ${selected.has(p.id) ? "on" : ""}`} aria-hidden />}
+              <span style={{ flex: 1, minWidth: 0 }}>
                 <b>{p.name}</b> <span className="muted">· {p.team || "—"} · {p.points} pt</span>
               </span>
-              <span className="btn btn-ghost btn-small">Modifica</span>
+              {!selecting && <span className="btn btn-ghost btn-small">Modifica</span>}
             </div>
           ))}
           {filtered.length > 100 && <p className="muted">Mostrati 100 di {filtered.length}. Usa la ricerca.</p>}
         </div>
-        {players.length > 0 && (
+        {players.length > 0 && !selecting && (
           <button className="btn btn-danger btn-small" onClick={deleteAll}>
             Elimina tutti gli utenti
           </button>
