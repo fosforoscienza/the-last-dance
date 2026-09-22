@@ -5,9 +5,9 @@ import Papa from "papaparse";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { PLAYER_COLUMNS, type Player } from "@/lib/types";
 import EditUser from "./EditUser";
+import AdminRow, { type AdminInfo } from "./AdminRow";
 
 type Row = { name: string; password: string; team?: string };
-type Admin = { id: string; username: string };
 
 const CHUNK = 50;
 const NAME_KEYS = ["nome utente", "nomeutente", "nome", "utente", "username", "user name", "name"];
@@ -58,7 +58,7 @@ export default function Manage() {
   const [singleMsg, setSingleMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [savingSingle, setSavingSingle] = useState(false);
 
-  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [admins, setAdmins] = useState<AdminInfo[]>([]);
   const [adminName, setAdminName] = useState("");
   const [adminPass, setAdminPass] = useState("");
   const [adminMsg, setAdminMsg] = useState("");
@@ -213,7 +213,7 @@ export default function Manage() {
     loadAdmins();
   }
 
-  async function removeAdmin(a: Admin) {
+  async function removeAdmin(a: AdminInfo) {
     if (!confirm(`Rimuovere l'admin ${a.username}?`)) return;
     await fetch(`/api/admin/admins?id=${a.id}`, { method: "DELETE" });
     loadAdmins();
@@ -385,19 +385,15 @@ export default function Manage() {
           cibo).
         </p>
         {admins.map((a) => (
-          <div className="list-row" key={a.id}>
-            <b>{a.username}</b>
-            <button className="btn btn-ghost btn-small" onClick={() => removeAdmin(a)}>
-              ✕
-            </button>
-          </div>
+          <AdminRow key={`${a.id}-${a.username}-${a.password}`} admin={a} onChanged={loadAdmins} onRemove={removeAdmin} />
         ))}
         <form className="section" onSubmit={addAdmin}>
           <input className="input" placeholder="Nome admin" value={adminName} onChange={(e) => setAdminName(e.target.value)} />
           <input
             className="input"
             placeholder="Password"
-            type="password"
+            autoCapitalize="none"
+            autoCorrect="off"
             value={adminPass}
             onChange={(e) => setAdminPass(e.target.value)}
           />
