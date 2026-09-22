@@ -11,5 +11,5 @@ export default async function AdminPage() {
   // Admin rimosso o trasformato in giocatore: chiude la sessione
   const admin = await requireAdmin();
   if (!admin) redirect("/api/logout-redirect");
-  return <AdminApp adminName={admin.name} kind={admin.kind} />;
+  return <AdminApp adminName={admin.name} kind={admin.kind} isMain={admin.credId === "env"} />;
 }

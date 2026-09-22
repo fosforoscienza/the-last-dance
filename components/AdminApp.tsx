@@ -5,11 +5,12 @@ import ScanFlow from "./ScanFlow";
 import Leaderboard from "./Leaderboard";
 import Manage from "./Manage";
 import LogoutButton from "./LogoutButton";
+import ChangePassword from "./ChangePassword";
 import { can, kindLabel, type AdminKind } from "@/lib/roles";
 
 type Tab = "scan" | "board" | "manage";
 
-export default function AdminApp({ adminName, kind }: { adminName: string; kind: AdminKind }) {
+export default function AdminApp({ adminName, kind, isMain }: { adminName: string; kind: AdminKind; isMain: boolean }) {
   const canPoints = can(kind, "points");
   const canFood = can(kind, "food");
   const canManage = can(kind, "manage");
@@ -26,7 +27,10 @@ export default function AdminApp({ adminName, kind }: { adminName: string; kind:
           <h1 className="title">{kindLabel(kind)}</h1>
           <span className="muted">{adminName}</span>
         </div>
-        <LogoutButton />
+        <div className="row">
+          <ChangePassword isMain={isMain} />
+          <LogoutButton />
+        </div>
       </div>
       <div className="tabs" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
         {tabs.map((t) => (
