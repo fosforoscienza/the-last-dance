@@ -45,7 +45,9 @@ export default function LoginForm() {
           className="input"
           placeholder="Nome"
           autoComplete="username"
-          autoCapitalize="words"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />

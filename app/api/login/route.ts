@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { timingSafeEqual } from "crypto";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { createSession } from "@/lib/session";
-import { escapeLike, normalizeName } from "@/lib/util";
+import { envAdminName, escapeLike, normalizeName, sameName } from "@/lib/util";
 
 function safeEqual(a: string, b: string) {
   const ba = Buffer.from(a);
@@ -14,15 +14,16 @@ function safeEqual(a: string, b: string) {
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const username = normalizeName(body.username);
-  const password = String(body.password ?? "");
+  // Le password salvate sono senza spazi iniziali/finali (tastiere del telefono a volte li aggiungono)
+  const password = String(body.password ?? "").trim();
   if (!username || !password) {
     return NextResponse.json({ error: "Inserisci nome e password" }, { status: 400 });
   }
 
   // Admin principale da variabili d'ambiente
-  const envUser = process.env.ADMIN_USERNAME;
-  const envPass = process.env.ADMIN_PASSWORD;
-  if (envUser && envPass && username.toLowerCase() === envUser.toLowerCase()) {
+  const envUser = envAdminName();
+  const envPass = process.env.ADMIN_PASSWORD?.trim();
+  if (envUser && envPass && sameName(username, envUser)) {
     if (safeEqual(password, envPass)) {
       await createSession({ role: "admin", name: envUser });
       return NextResponse.json({ role: "admin" });

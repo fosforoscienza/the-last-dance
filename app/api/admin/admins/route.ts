@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireAdmin } from "@/lib/session";
-import { escapeLike, normalizeName } from "@/lib/util";
+import { escapeLike, isEnvAdminName, normalizeName } from "@/lib/util";
 
 export async function GET() {
   if (!(await requireAdmin())) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   if (!username || password.length < 4) {
     return NextResponse.json({ error: "Nome obbligatorio e password di almeno 4 caratteri" }, { status: 400 });
   }
-  if (process.env.ADMIN_USERNAME && username.toLowerCase() === process.env.ADMIN_USERNAME.toLowerCase()) {
+  if (isEnvAdminName(username)) {
     return NextResponse.json({ error: "Nome già in uso" }, { status: 409 });
   }
   const db = supabaseAdmin();

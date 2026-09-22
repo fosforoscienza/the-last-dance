@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireAdmin } from "@/lib/session";
-import { escapeLike, normalizeName } from "@/lib/util";
+import { escapeLike, isEnvAdminName, normalizeName, sameName } from "@/lib/util";
 import { decryptPassword, passwordFields, writeWithEncFallback } from "@/lib/password";
 import { PLAYER_COLUMNS } from "@/lib/types";
 
@@ -41,8 +41,8 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (body.name !== undefined) {
     const name = normalizeName(body.name);
     if (!name) return NextResponse.json({ error: "Il nome non può essere vuoto" }, { status: 400 });
-    if (name.toLowerCase() !== cred.username.toLowerCase()) {
-      if (process.env.ADMIN_USERNAME && name.toLowerCase() === process.env.ADMIN_USERNAME.toLowerCase()) {
+    if (!sameName(name, cred.username)) {
+      if (isEnvAdminName(name)) {
         return NextResponse.json({ error: "Nome già in uso" }, { status: 409 });
       }
       const { data: clash } = await db.from("credentials").select("id").ilike("username", escapeLike(name)).maybeSingle();

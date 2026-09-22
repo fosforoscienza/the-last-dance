@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireAdmin } from "@/lib/session";
-import { escapeLike, normalizeName } from "@/lib/util";
+import { escapeLike, isEnvAdminName, normalizeName } from "@/lib/util";
 import { passwordFields, writeWithEncFallback } from "@/lib/password";
 
 type Row = { name: string; password: string; team: string };
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       errors.push(`Riga senza nome o password${name ? `: ${name}` : ""}`);
       continue;
     }
-    if (process.env.ADMIN_USERNAME && name.toLowerCase() === process.env.ADMIN_USERNAME.toLowerCase()) {
+    if (isEnvAdminName(name)) {
       errors.push(`${name}: nome riservato all'admin`);
       continue;
     }
