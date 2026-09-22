@@ -1001,3 +1001,13 @@ input {
   text-transform: uppercase;
   vertical-align: middle;
 }
+
+.pts-unit {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cream-dark);
+  text-align: right;
+}

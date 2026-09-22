@@ -8,6 +8,8 @@ export default function Leaderboard() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"players" | "teams">("players");
+  // Classifica squadre: per punteggio totale oppure per media sui giocatori
+  const [teamSort, setTeamSort] = useState<"total" | "average">("total");
   const [filter, setFilter] = useState<string>("__all");
   const [flash, setFlash] = useState<Record<string, number>>({});
   const flashTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -68,7 +70,8 @@ export default function Leaderboard() {
     [players]
   );
 
-  type BoardRow = { id: string; title: string; sub: string; points: number; flash: boolean };
+  // points: valore usato per ordinare (totale, media o punti del giocatore); label: come mostrarlo
+  type BoardRow = { id: string; title: string; sub: string; points: number; label: string; flash: boolean };
 
   const rows = useMemo<BoardRow[]>(() => {
     if (view === "teams") {
@@ -81,19 +84,19 @@ export default function Leaderboard() {
         t.flash ||= Boolean(flash[p.id]);
         totals.set(key, t);
       }
-      return Array.from(totals, ([team, t]) => ({
-        id: `team:${team}`,
-        title: team,
-        sub: `${t.count} ${t.count === 1 ? "giocatore" : "giocatori"}`,
-        points: t.points,
-        flash: t.flash,
-      })).sort((a, b) => b.points - a.points || a.title.localeCompare(b.title));
+      return Array.from(totals, ([team, t]) => {
+        const avg = Math.round((t.points / t.count) * 10) / 10;
+        const players = `${t.count} ${t.count === 1 ? "giocatore" : "giocatori"}`;
+        return teamSort === "average"
+          ? { id: `team:${team}`, title: team, sub: `${players} · totale ${t.points}`, points: avg, label: formatNum(avg), flash: t.flash }
+          : { id: `team:${team}`, title: team, sub: `${players} · media ${formatNum(avg)}`, points: t.points, label: String(t.points), flash: t.flash };
+      }).sort((a, b) => b.points - a.points || a.title.localeCompare(b.title));
     }
     return players
       .filter((p) => filter === "__all" || p.team === filter)
       .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name))
-      .map((p) => ({ id: p.id, title: p.name, sub: p.team, points: p.points, flash: Boolean(flash[p.id]) }));
-  }, [players, filter, view, flash]);
+      .map((p) => ({ id: p.id, title: p.name, sub: p.team, points: p.points, label: String(p.points), flash: Boolean(flash[p.id]) }));
+  }, [players, filter, view, flash, teamSort]);
 
   const maxPoints = Math.max(1, ...rows.map((r) => r.points));
 
@@ -111,6 +114,16 @@ export default function Leaderboard() {
           Squadre
         </button>
       </div>
+      {view === "teams" && (
+        <div className="seg">
+          <button className={teamSort === "total" ? "active" : ""} onClick={() => setTeamSort("total")}>
+            Punteggio totale
+          </button>
+          <button className={teamSort === "average" ? "active" : ""} onClick={() => setTeamSort("average")}>
+            Media per giocatore
+          </button>
+        </div>
+      )}
       {view === "players" && teams.length > 0 && (
         <div className="seg">
           <button className={filter === "__all" ? "active" : ""} onClick={() => setFilter("__all")}>Tutti</button>
@@ -138,7 +151,10 @@ export default function Leaderboard() {
                     <strong>{r.title}</strong>
                     {r.sub && <span>{r.sub}</span>}
                   </span>
-                  <span className="pts">{r.points}</span>
+                  <span className="pts">
+                    {r.label}
+                    {view === "teams" && teamSort === "average" && <small className="pts-unit">media</small>}
+                  </span>
                   {view === "teams" && (
                     <span className="team-bar">
                       <span style={{ width: `${(r.points / maxPoints) * 100}%` }} />
@@ -152,4 +168,9 @@ export default function Leaderboard() {
       </div>
     </>
   );
+}
+
+// 12.5 -> "12,5", 12 -> "12"
+function formatNum(n: number) {
+  return n.toLocaleString("it-IT", { maximumFractionDigits: 1 });
 }
