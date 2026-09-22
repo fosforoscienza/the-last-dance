@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireAdmin } from "@/lib/session";
 import { escapeLike, normalizeName } from "@/lib/util";
+import { passwordFields, writeWithEncFallback } from "@/lib/password";
 
 type Row = { name: string; password: string; team: string };
 
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       errors.push(`${name}: nome riservato all'admin`);
       continue;
     }
-    const hash = await bcrypt.hash(password, 8);
+    const pw = await passwordFields(password);
 
     const { data: existing } = await db
       .from("credentials")
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
         errors.push(`${name}: nome già usato da un admin`);
         continue;
       }
-      await db.from("credentials").update({ password_hash: hash }).eq("id", existing.id);
+      await writeWithEncFallback(pw, (f) => db.from("credentials").update(f).eq("id", existing.id));
       await db.from("players").update({ team, name }).eq("id", existing.player_id);
       updated++;
       continue;
@@ -57,9 +57,9 @@ export async function POST(req: Request) {
       errors.push(`${name}: impossibile creare l'utente`);
       continue;
     }
-    const { error: cErr } = await db
-      .from("credentials")
-      .insert({ username: name, password_hash: hash, role: "user", player_id: player.id });
+    const { error: cErr } = await writeWithEncFallback({ ...pw, username: name, role: "user", player_id: player.id }, (f) =>
+      db.from("credentials").insert(f)
+    );
     if (cErr) {
       await db.from("players").delete().eq("id", player.id);
       errors.push(`${name}: impossibile salvare la password`);

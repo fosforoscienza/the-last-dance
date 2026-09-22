@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Scanner from "./Scanner";
+import ManualSearch from "./ManualSearch";
 import FoodIcon from "./FoodIcon";
 import Popup from "./Popup";
 import { supabaseBrowser } from "@/lib/supabase-browser";
@@ -66,7 +67,10 @@ export default function ScanFlow() {
             <span className="title">Carico...</span>
           </div>
         ) : (
-          <Scanner key={error} onScan={onScan} />
+          <>
+            <Scanner key={error} onScan={onScan} />
+            <ManualSearch onPick={onScan} />
+          </>
         )}
         <Popup data={current} onDone={done} />
       </>
@@ -74,7 +78,7 @@ export default function ScanFlow() {
   }
 
   return (
-    <div className="player-view">
+    <div className={`player-view ${mode === "player" ? "" : "compact"}`}>
       <div className="corner-row">
         <button className="btn btn-ghost btn-small" onClick={backToScanner}>
           ← Scanner
@@ -212,7 +216,7 @@ function PointsPad({ player, onDone }: { player: Player; onDone: (p: Player, req
       </div>
       <button
         className="btn"
-        style={{ background: sign === 1 ? "var(--green)" : "var(--red)", color: "#fff", flexShrink: 0, padding: "18px" }}
+        style={{ background: sign === 1 ? "var(--green)" : "var(--red)", color: "#fff", flexShrink: 0, padding: "14px" }}
         disabled={busy || value <= 0}
         onClick={confirm}
       >
@@ -272,7 +276,7 @@ function FoodPicker({ player, onDone }: { player: Player; onDone: (p: Player) =>
       {error && <p className="error">{error}</p>}
       <button
         className="btn btn-gold"
-        style={{ flexShrink: 0, padding: "18px" }}
+        style={{ flexShrink: 0, padding: "14px" }}
         disabled={busy || selected.length === 0}
         onClick={confirm}
       >

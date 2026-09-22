@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Papa from "papaparse";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { PLAYER_COLUMNS, type Player } from "@/lib/types";
+import EditUser from "./EditUser";
 
 type Row = { name: string; password: string; team: string };
 type Admin = { id: string; username: string };
@@ -47,6 +48,7 @@ export default function Manage() {
 
   const [players, setPlayers] = useState<Player[]>([]);
   const [search, setSearch] = useState("");
+  const [editing, setEditing] = useState<string | null>(null);
 
   const [single, setSingle] = useState<Row>({ name: "", password: "", team: "" });
   const [singleMsg, setSingleMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -141,6 +143,7 @@ export default function Manage() {
   async function deletePlayer(p: Player) {
     if (!confirm(`Eliminare ${p.name}?`)) return;
     await fetch(`/api/admin/players?id=${p.id}`, { method: "DELETE" });
+    setEditing(null);
     loadPlayers();
   }
 
@@ -261,16 +264,15 @@ export default function Manage() {
 
       <section className="card section">
         <h3>Utenti ({players.length})</h3>
+        <p className="muted" style={{ margin: 0 }}>Tocca un utente per vedere la password o modificarlo.</p>
         <input className="input" placeholder="Cerca nome o squadra" value={search} onChange={(e) => setSearch(e.target.value)} />
         <div>
           {filtered.slice(0, 100).map((p) => (
-            <div className="list-row" key={p.id}>
+            <div className="list-row user-row" key={p.id} onClick={() => setEditing(p.id)}>
               <span>
                 <b>{p.name}</b> <span className="muted">· {p.team || "—"} · {p.points} pt</span>
               </span>
-              <button className="btn btn-ghost btn-small" onClick={() => deletePlayer(p)}>
-                ✕
-              </button>
+              <span className="btn btn-ghost btn-small">Modifica</span>
             </div>
           ))}
           {filtered.length > 100 && <p className="muted">Mostrati 100 di {filtered.length}. Usa la ricerca.</p>}
@@ -309,6 +311,15 @@ export default function Manage() {
           <button className="btn">Aggiungi admin</button>
         </form>
       </section>
+      {editing && (
+        <EditUser
+          playerId={editing}
+          teams={teams}
+          onClose={() => setEditing(null)}
+          onSaved={loadPlayers}
+          onDelete={deletePlayer}
+        />
+      )}
     </div>
   );
 }

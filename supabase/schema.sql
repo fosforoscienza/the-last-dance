@@ -25,10 +25,14 @@ create table if not exists public.credentials (
   id             uuid primary key default gen_random_uuid(),
   username       text not null,
   password_hash  text not null,
+  password_enc   text,
   role           text not null check (role in ('user', 'admin')),
   player_id      uuid references public.players (id) on delete cascade,
   created_at     timestamptz not null default now()
 );
+
+-- Aggiornamento: copia cifrata della password, visibile agli admin
+alter table public.credentials add column if not exists password_enc text;
 
 create unique index if not exists credentials_username_key on public.credentials (lower(username));
 
