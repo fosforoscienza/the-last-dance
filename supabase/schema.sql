@@ -1,0 +1,75 @@
+-- ============================================================
+-- The LAST Dance — schema database
+-- Da eseguire una volta nel SQL Editor di Supabase.
+-- ============================================================
+
+-- Giocatori: dati pubblici (nome, squadra, punti, ticket).
+-- Leggibili in sola lettura dal browser per gli aggiornamenti live.
+create table if not exists public.players (
+  id          uuid primary key default gen_random_uuid(),
+  name        text not null,
+  team        text not null default '',
+  points      integer not null default 0 check (points >= 0),
+  hotdog_1    boolean not null default false,
+  hotdog_2    boolean not null default false,
+  fries       boolean not null default false,
+  donut       boolean not null default false,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+create unique index if not exists players_name_key on public.players (lower(name));
+
+-- Credenziali: mai accessibili dal browser (solo service role lato server).
+create table if not exists public.credentials (
+  id             uuid primary key default gen_random_uuid(),
+  username       text not null,
+  password_hash  text not null,
+  role           text not null check (role in ('user', 'admin')),
+  player_id      uuid references public.players (id) on delete cascade,
+  created_at     timestamptz not null default now()
+);
+
+create unique index if not exists credentials_username_key on public.credentials (lower(username));
+
+-- Row Level Security
+alter table public.players enable row level security;
+alter table public.credentials enable row level security;
+
+drop policy if exists "players are readable" on public.players;
+create policy "players are readable" on public.players
+  for select to anon, authenticated using (true);
+-- Nessuna policy su credentials => accesso negato a anon/authenticated.
+
+-- Somma/sottrazione punti atomica, mai sotto zero.
+create or replace function public.change_points(p_id uuid, p_delta integer)
+returns public.players
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  result public.players;
+begin
+  update public.players
+     set points = greatest(0, points + p_delta),
+         updated_at = now()
+   where id = p_id
+  returning * into result;
+  return result;
+end;
+$$;
+
+revoke all on function public.change_points(uuid, integer) from public, anon, authenticated;
+grant execute on function public.change_points(uuid, integer) to service_role;
+
+-- Realtime sugli aggiornamenti dei giocatori
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'players'
+  ) then
+    alter publication supabase_realtime add table public.players;
+  end if;
+end $$;

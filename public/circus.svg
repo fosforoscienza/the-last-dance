@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="stripes" width="40" height="40" patternUnits="userSpaceOnUse">
+      <rect width="20" height="40" fill="#F3E6CF"/>
+      <rect x="20" width="20" height="40" fill="#C9A27E"/>
+    </pattern>
+    <g id="star">
+      <path d="M0,-10 L2.9,-3.1 10,-3.1 4.3,1.2 6.5,8.1 0,4 -6.5,8.1 -4.3,1.2 -10,-3.1 -2.9,-3.1Z" fill="#F3E6CF"/>
+    </g>
+  </defs>
+
+  <!-- stelle -->
+  <use href="#star" transform="translate(70,90) scale(1.4)"/>
+  <use href="#star" transform="translate(520,120) scale(1.1)"/>
+  <use href="#star" transform="translate(470,40) scale(.8)"/>
+  <use href="#star" transform="translate(140,30) scale(.7)"/>
+  <use href="#star" transform="translate(40,300) scale(.9)"/>
+  <use href="#star" transform="translate(560,330) scale(1.2)"/>
+  <use href="#star" transform="translate(300,20) scale(.6)"/>
+
+  <!-- ghirlanda di bandierine -->
+  <path d="M0,170 Q150,230 300,170 T600,170" fill="none" stroke="#F3E6CF" stroke-width="3"/>
+  <g fill="#F3E6CF">
+    <path d="M30,181 l14,4 -4,26z"/>
+    <path d="M80,198 l14,3 -6,26z"/>
+    <path d="M130,208 l14,1 -8,25z"/>
+    <path d="M180,207 l14,-2 -5,26z"/>
+    <path d="M230,196 l14,-4 -3,26z"/>
+    <path d="M330,176 l14,3 -3,26z"/>
+    <path d="M380,190 l14,4 -5,26z"/>
+    <path d="M430,200 l14,1 -7,25z"/>
+    <path d="M480,196 l14,-2 -5,26z"/>
+    <path d="M530,184 l14,-4 -3,26z"/>
+  </g>
+
+  <!-- tendone -->
+  <g transform="translate(300,260)">
+    <line x1="0" y1="-60" x2="0" y2="20" stroke="#F3E6CF" stroke-width="5"/>
+    <path d="M0,-80 l40,12 -40,12z" fill="#F3E6CF"/>
+    <path d="M0,10 C-60,60 -150,90 -250,120 L250,120 C150,90 60,60 0,10Z" fill="url(#stripes)"/>
+    <path d="M-250,120 q25,30 50,0 q25,30 50,0 q25,30 50,0 q25,30 50,0 q25,30 50,0 q25,30 50,0 q25,30 50,0 q25,30 50,0 q25,30 50,0 q25,30 50,0z" fill="#F3E6CF"/>
+    <rect x="-230" y="140" width="460" height="300" fill="url(#stripes)"/>
+    <path d="M-70,440 L-70,280 Q0,200 70,280 L70,440Z" fill="#2a0508" opacity=".85"/>
+    <path d="M-70,280 Q-20,330 -10,440 L-70,440Z" fill="#F3E6CF"/>
+    <path d="M70,280 Q20,330 10,440 L70,440Z" fill="#F3E6CF"/>
+    <rect x="-240" y="436" width="480" height="14" rx="4" fill="#F3E6CF"/>
+  </g>
+
+  <!-- podio con palla -->
+  <g transform="translate(95,640)">
+    <circle cx="0" cy="-58" r="34" fill="#F3E6CF"/>
+    <path d="M-34,-58 a34,34 0 0,0 68,0" fill="#C9A27E"/>
+    <path d="M-40,-20 L40,-20 L30,60 L-30,60Z" fill="#F3E6CF"/>
+    <rect x="-46" y="-26" width="92" height="12" rx="4" fill="#C9A27E"/>
+  </g>
+
+  <!-- podio con cappello e bastone -->
+  <g transform="translate(505,650)">
+    <rect x="-26" y="-92" width="52" height="46" fill="#F3E6CF"/>
+    <rect x="-40" y="-50" width="80" height="10" rx="4" fill="#F3E6CF"/>
+    <rect x="-26" y="-66" width="52" height="8" fill="#C9A27E"/>
+    <path d="M-40,-20 L40,-20 L30,50 L-30,50Z" fill="#F3E6CF"/>
+    <rect x="-46" y="-26" width="92" height="12" rx="4" fill="#C9A27E"/>
+  </g>
+
+  <!-- pista -->
+  <ellipse cx="300" cy="820" rx="290" ry="55" fill="none" stroke="#F3E6CF" stroke-width="10"/>
+  <ellipse cx="300" cy="820" rx="250" ry="38" fill="none" stroke="#C9A27E" stroke-width="5" stroke-dasharray="18 12"/>
+</svg>
