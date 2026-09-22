@@ -43,3 +43,7 @@ L'utente accede con il nome (maiuscole/minuscole indifferenti) e la password del
 npm install
 npm run dev
 ```
+
+## Deploy
+
+Il branch `main` è quello pubblicato in Production su Vercel: ogni push su `main` avvia un nuovo deploy.
