@@ -13,7 +13,15 @@ type Mode = "scan" | "loading" | "player" | "points" | "food";
 
 const MAX_DIGITS = 7;
 
-export default function ScanFlow({ canPoints, canFood }: { canPoints: boolean; canFood: boolean }) {
+export default function ScanFlow({
+  canPoints,
+  canFood,
+  visible = true,
+}: {
+  canPoints: boolean;
+  canFood: boolean;
+  visible?: boolean;
+}) {
   const [mode, setMode] = useState<Mode>("scan");
   const [player, setPlayer] = useState<Player | null>(null);
   const [error, setError] = useState("");
@@ -59,26 +67,33 @@ export default function ScanFlow({ canPoints, canFood }: { canPoints: boolean; c
     };
   }, [playerId]);
 
-  if (mode === "scan" || mode === "loading" || !player) {
-    return (
-      <>
-        {error && <p className="error" style={{ textAlign: "center" }}>{error}</p>}
-        {mode === "loading" ? (
-          <div className="scanner" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span className="title">Carico...</span>
-          </div>
-        ) : (
-          <>
-            <Scanner key={error} onScan={onScan} />
-            <ManualSearch onPick={onScan} />
-          </>
-        )}
-        <Popup data={current} onDone={done} />
-      </>
-    );
-  }
+  const scanning = mode === "scan" || mode === "loading" || !player;
 
   return (
+    <>
+      {/* Lo scanner resta sempre montato: la fotocamera non viene richiesta di nuovo */}
+      <Scanner active={visible && mode === "scan"} onScan={onScan} />
+      {scanning ? (
+        <>
+          {error && <p className="error" style={{ textAlign: "center" }}>{error}</p>}
+          {mode === "loading" ? (
+            <div className="scanner" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span className="title">Carico...</span>
+            </div>
+          ) : (
+            <ManualSearch onPick={onScan} />
+          )}
+          <Popup data={current} onDone={done} />
+        </>
+      ) : (
+        renderPlayerView()
+      )}
+    </>
+  );
+
+  function renderPlayerView() {
+    if (!player) return null;
+    return (
     <div className={`player-view ${mode === "player" ? "" : "compact"}`}>
       <div className="corner-row">
         <button className="btn btn-ghost btn-small" onClick={backToScanner}>
@@ -145,7 +160,8 @@ export default function ScanFlow({ canPoints, canFood }: { canPoints: boolean; c
 
       <Popup data={current} onDone={done} />
     </div>
-  );
+    );
+  }
 }
 
 function PointsPad({ player, onDone }: { player: Player; onDone: (p: Player, requested: number, before: number) => void }) {

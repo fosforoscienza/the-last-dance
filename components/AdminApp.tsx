@@ -39,11 +39,18 @@ export default function AdminApp({ adminName, kind, isMain }: { adminName: strin
           </button>
         ))}
       </div>
-      <div className="panel">
-        {tab === "scan" && <ScanFlow canPoints={canPoints} canFood={canFood} />}
-        {tab === "board" && <Leaderboard />}
-        {tab === "manage" && canManage && <Manage />}
-      </div>
+      {/* Lo scanner resta montato anche sulle altre schede, così la fotocamera rimane autorizzata */}
+      {(canPoints || canFood) && (
+        <div className="panel" style={tab === "scan" ? undefined : { display: "none" }}>
+          <ScanFlow canPoints={canPoints} canFood={canFood} visible={tab === "scan"} />
+        </div>
+      )}
+      {tab !== "scan" && (
+        <div className="panel">
+          {tab === "board" && <Leaderboard />}
+          {tab === "manage" && canManage && <Manage />}
+        </div>
+      )}
     </div>
   );
 }
