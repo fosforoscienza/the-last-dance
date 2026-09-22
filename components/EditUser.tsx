@@ -2,16 +2,26 @@
 
 import { useEffect, useState } from "react";
 import type { Player } from "@/lib/types";
+import RolePicker, { type RoleValue } from "./RolePicker";
+import { kindLabel } from "@/lib/roles";
 
-type Props = { playerId: string; teams: string[]; onClose: () => void; onSaved: () => void; onDelete: (p: Player) => void };
+type Props = {
+  playerId: string;
+  teams: string[];
+  onClose: () => void;
+  onSaved: () => void;
+  onPromoted: () => void;
+  onDelete: (p: Player) => void;
+};
 
-export default function EditUser({ playerId, teams, onClose, onSaved, onDelete }: Props) {
+export default function EditUser({ playerId, teams, onClose, onSaved, onPromoted, onDelete }: Props) {
   const [player, setPlayer] = useState<Player | null>(null);
   const [name, setName] = useState("");
   const [team, setTeam] = useState("");
   const [password, setPassword] = useState("");
   const [savedPassword, setSavedPassword] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState<RoleValue>("giocatore");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -38,6 +48,15 @@ export default function EditUser({ playerId, teams, onClose, onSaved, onDelete }
     if (name.trim() !== player.name) body.name = name;
     if (team.trim() !== player.team) body.team = team;
     if (password.trim() && password !== savedPassword) body.password = password;
+    if (role !== "giocatore") {
+      if (
+        !confirm(
+          `${player.name} diventerà ${kindLabel(role)}: uscirà dalla classifica e perderà punti, ticket e QR code. Continuare?`
+        )
+      )
+        return;
+      body.role = role;
+    }
     if (!Object.keys(body).length) {
       setMsg({ ok: true, text: "Nessuna modifica" });
       return;
@@ -53,6 +72,10 @@ export default function EditUser({ playerId, teams, onClose, onSaved, onDelete }
     setBusy(false);
     if (!res.ok) {
       setMsg({ ok: false, text: data.error || "Errore" });
+      return;
+    }
+    if (data.promoted) {
+      onPromoted();
       return;
     }
     setPlayer(data.player);
@@ -116,6 +139,10 @@ export default function EditUser({ playerId, teams, onClose, onSaved, onDelete }
                 ))}
               </datalist>
             </label>
+            <div className="field">
+              <span>Ruolo</span>
+              <RolePicker value={role} onChange={setRole} withPlayer />
+            </div>
             {msg && (
               <p className={msg.ok ? "" : "error"} style={{ margin: 0, fontWeight: 900 }}>
                 {msg.text}

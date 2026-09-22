@@ -3,7 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { requireAdmin } from "@/lib/session";
 
 export async function POST(req: Request) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  if (!(await requireAdmin("points"))) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   const body = await req.json().catch(() => ({}));
   const playerId = String(body.playerId ?? "");
   const delta = Number(body.delta);

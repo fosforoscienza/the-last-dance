@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/session";
 
 // Elimina un singolo utente (?id=...), più utenti (body JSON { ids: [...] }) oppure tutti (?all=1)
 export async function DELETE(req: Request) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  if (!(await requireAdmin("manage"))) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   const { searchParams } = new URL(req.url);
   const db = supabaseAdmin();
   const id = searchParams.get("id");

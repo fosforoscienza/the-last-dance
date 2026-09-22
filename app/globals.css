@@ -982,3 +982,22 @@ input {
   letter-spacing: 0.04em;
   word-break: break-all;
 }
+
+/* ruoli admin */
+.role-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.role-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--bordeaux-deep);
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  vertical-align: middle;
+}

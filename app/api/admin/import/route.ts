@@ -9,7 +9,7 @@ type Row = { name: string; password: string; team?: string };
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  if (!(await requireAdmin("manage"))) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   const body = await req.json().catch(() => ({}));
   const rows: Row[] = Array.isArray(body.rows) ? body.rows : [];
   if (rows.length === 0 || rows.length > 200) {

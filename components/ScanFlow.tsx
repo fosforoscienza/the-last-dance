@@ -13,7 +13,7 @@ type Mode = "scan" | "loading" | "player" | "points" | "food";
 
 const MAX_DIGITS = 7;
 
-export default function ScanFlow() {
+export default function ScanFlow({ canPoints, canFood }: { canPoints: boolean; canFood: boolean }) {
   const [mode, setMode] = useState<Mode>("scan");
   const [player, setPlayer] = useState<Player | null>(null);
   const [error, setError] = useState("");
@@ -33,12 +33,13 @@ export default function ScanFlow() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Utente non trovato");
       setPlayer(data.player);
-      setMode("player");
+      // Con un solo permesso si va diretti alla schermata giusta
+      setMode(canPoints && canFood ? "player" : canPoints ? "points" : "food");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Errore");
       setMode("scan");
     }
-  }, []);
+  }, [canPoints, canFood]);
 
   // Aggiornamenti live del giocatore aperto (es. altro admin che assegna punti)
   const playerId = player?.id;
@@ -83,17 +84,17 @@ export default function ScanFlow() {
         <button className="btn btn-ghost btn-small" onClick={backToScanner}>
           ← Scanner
         </button>
-        {mode === "points" && (
+        {mode === "points" && canFood && (
           <button className="btn btn-ghost btn-small" onClick={() => setMode("food")}>
             Cibo →
           </button>
         )}
-        {mode === "food" && (
+        {mode === "food" && canPoints && (
           <button className="btn btn-ghost btn-small" onClick={() => setMode("points")}>
             Punti →
           </button>
         )}
-        {mode === "player" && <span />}
+        {(mode === "player" || !(canPoints && canFood)) && <span />}
       </div>
 
       <div className="player-info">
@@ -103,17 +104,21 @@ export default function ScanFlow() {
       </div>
 
       {mode === "player" && (
-        <div className="big-actions">
-          <button className="big-btn big-btn-points" onClick={() => setMode("points")}>
-            ★ Assegna punti
-          </button>
-          <button className="big-btn big-btn-food" onClick={() => setMode("food")}>
-            <FoodIcon food="hotdog" /> Cibo
-          </button>
+        <div className="big-actions" style={canPoints && canFood ? undefined : { gridTemplateRows: "1fr" }}>
+          {canPoints && (
+            <button className="big-btn big-btn-points" onClick={() => setMode("points")}>
+              ★ Assegna punti
+            </button>
+          )}
+          {canFood && (
+            <button className="big-btn big-btn-food" onClick={() => setMode("food")}>
+              <FoodIcon food="hotdog" /> Cibo
+            </button>
+          )}
         </div>
       )}
 
-      {mode === "points" && (
+      {mode === "points" && canPoints && (
         <PointsPad
           player={player}
           onDone={(updated, requested, before) => {
@@ -126,7 +131,7 @@ export default function ScanFlow() {
         />
       )}
 
-      {mode === "food" && (
+      {mode === "food" && canFood && (
         <FoodPicker
           player={player}
           onRestored={setPlayer}

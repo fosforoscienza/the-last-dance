@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   const envPass = process.env.ADMIN_PASSWORD?.trim();
   if (envUser && envPass && sameName(username, envUser)) {
     if (safeEqual(password, envPass)) {
-      await createSession({ role: "admin", name: envUser });
+      await createSession({ role: "admin", name: envUser, credId: "env" });
       return NextResponse.json({ role: "admin" });
     }
     return NextResponse.json({ error: "Credenziali non valide" }, { status: 401 });
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   const db = supabaseAdmin();
   const { data } = await db
     .from("credentials")
-    .select("username,password_hash,role,player_id")
+    .select("id,username,password_hash,role,player_id")
     .ilike("username", escapeLike(username))
     .maybeSingle();
 
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   }
 
   if (data.role === "admin") {
-    await createSession({ role: "admin", name: data.username });
+    await createSession({ role: "admin", name: data.username, credId: data.id });
   } else {
     if (!data.player_id) return NextResponse.json({ error: "Utente non valido" }, { status: 401 });
     await createSession({ role: "user", name: data.username, playerId: data.player_id });

@@ -34,6 +34,10 @@ create table if not exists public.credentials (
 -- Aggiornamento: copia cifrata della password, visibile agli admin
 alter table public.credentials add column if not exists password_enc text;
 
+-- Aggiornamento: ruolo degli admin (vuoto = direttore)
+alter table public.credentials add column if not exists admin_kind text
+  check (admin_kind in ('cuoco', 'giostraio', 'jolly', 'direttore'));
+
 create unique index if not exists credentials_username_key on public.credentials (lower(username));
 
 -- Row Level Security

@@ -1,15 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import RolePicker, { type RoleValue } from "./RolePicker";
+import { kindLabel, type AdminKind } from "@/lib/roles";
 
-export type AdminInfo = { id: string; username: string; password: string | null; main: boolean };
+export type AdminInfo = { id: string; username: string; password: string | null; kind: AdminKind; main: boolean };
 
 export default function AdminRow({
   admin,
+  isMe,
   onChanged,
   onRemove,
 }: {
   admin: AdminInfo;
+  isMe: boolean;
   onChanged: () => void;
   onRemove: (a: AdminInfo) => void;
 }) {
@@ -17,6 +21,7 @@ export default function AdminRow({
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(admin.username);
   const [password, setPassword] = useState(admin.password ?? "");
+  const [role, setRole] = useState<RoleValue>(admin.kind);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -25,6 +30,14 @@ export default function AdminRow({
     const body: Record<string, string> = {};
     if (name.trim() !== admin.username) body.username = name;
     if (password.trim() && password !== admin.password) body.password = password;
+    if (role !== admin.kind) {
+      if (
+        role === "giocatore" &&
+        !confirm(`${admin.username} diventerà un giocatore: avrà QR code, punti e ticket e non sarà più admin. Continuare?`)
+      )
+        return;
+      body.role = role;
+    }
     if (!Object.keys(body).length) {
       setEditing(false);
       return;
@@ -58,6 +71,11 @@ export default function AdminRow({
           autoCapitalize="none"
           autoCorrect="off"
         />
+        {isMe ? (
+          <small className="muted">Non puoi cambiare il tuo ruolo.</small>
+        ) : (
+          <RolePicker value={role} onChange={setRole} withPlayer />
+        )}
         {msg && <p className="error">{msg}</p>}
         <div className="row">
           <button className="btn btn-gold btn-small" disabled={busy} style={{ flex: 1 }}>
@@ -76,6 +94,7 @@ export default function AdminRow({
       <div className="admin-row-head">
         <b>
           {admin.username}
+          <span className="role-badge">{kindLabel(admin.kind)}</span>
           {admin.main && <span className="muted"> · principale</span>}
         </b>
         {!admin.main && (
@@ -83,9 +102,11 @@ export default function AdminRow({
             <button className="btn btn-ghost btn-small" onClick={() => setEditing(true)}>
               Modifica
             </button>
-            <button className="btn btn-ghost btn-small" onClick={() => onRemove(admin)} aria-label="Rimuovi">
-              ✕
-            </button>
+            {!isMe && (
+              <button className="btn btn-ghost btn-small" onClick={() => onRemove(admin)} aria-label="Rimuovi">
+                ✕
+              </button>
+            )}
           </span>
         )}
       </div>

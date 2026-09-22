@@ -6,7 +6,7 @@ import { PLAYER_COLUMNS, TICKETS, type TicketKey } from "@/lib/types";
 const VALID = new Set<string>(TICKETS.map((t) => t.key));
 
 export async function POST(req: Request) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  if (!(await requireAdmin("food"))) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   const body = await req.json().catch(() => ({}));
   const playerId = String(body.playerId ?? "");
   const pick = (v: unknown): string[] => (Array.isArray(v) ? v.map(String).filter((t) => VALID.has(t)) : []);

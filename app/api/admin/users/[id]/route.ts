@@ -4,6 +4,8 @@ import { requireAdmin } from "@/lib/session";
 import { escapeLike, isEnvAdminName, normalizeName, sameName } from "@/lib/util";
 import { decryptPassword, passwordFields, writeWithEncFallback } from "@/lib/password";
 import { PLAYER_COLUMNS } from "@/lib/types";
+import { isAdminKind } from "@/lib/roles";
+import { changeRole } from "@/lib/role-change";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -17,7 +19,7 @@ async function loadCredential(playerId: string) {
 
 // Dettagli di un utente, password compresa (se disponibile)
 export async function GET(_req: Request, { params }: Ctx) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  if (!(await requireAdmin("manage"))) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   const { id } = await params;
   const { data: player } = await supabaseAdmin().from("players").select(PLAYER_COLUMNS).eq("id", id).maybeSingle();
   if (!player) return NextResponse.json({ error: "Utente non trovato" }, { status: 404 });
@@ -27,7 +29,7 @@ export async function GET(_req: Request, { params }: Ctx) {
 
 // Modifica nome, password e squadra
 export async function PATCH(req: Request, { params }: Ctx) {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
+  if (!(await requireAdmin("manage"))) return NextResponse.json({ error: "Non autorizzato" }, { status: 401 });
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
   const db = supabaseAdmin();
@@ -66,6 +68,14 @@ export async function PATCH(req: Request, { params }: Ctx) {
     playerUpdate.updated_at = new Date().toISOString();
     const { error } = await db.from("players").update(playerUpdate).eq("id", id);
     if (error) return NextResponse.json({ error: "Impossibile salvare l'utente" }, { status: 500 });
+  }
+
+  // Promozione a admin: il giocatore esce dalla classifica
+  if (body.role !== undefined && body.role !== "giocatore") {
+    if (!isAdminKind(body.role)) return NextResponse.json({ error: "Ruolo non valido" }, { status: 400 });
+    const res = await changeRole(cred.id, body.role);
+    if (res.error) return NextResponse.json({ error: res.error }, { status: 500 });
+    return NextResponse.json({ promoted: true });
   }
 
   const { data: player } = await db.from("players").select(PLAYER_COLUMNS).eq("id", id).maybeSingle();

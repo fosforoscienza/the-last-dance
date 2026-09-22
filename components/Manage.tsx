@@ -6,6 +6,8 @@ import { supabaseBrowser } from "@/lib/supabase-browser";
 import { PLAYER_COLUMNS, type Player } from "@/lib/types";
 import EditUser from "./EditUser";
 import AdminRow, { type AdminInfo } from "./AdminRow";
+import RolePicker from "./RolePicker";
+import type { AdminKind } from "@/lib/roles";
 
 type Row = { name: string; password: string; team?: string };
 
@@ -61,6 +63,8 @@ export default function Manage() {
   const [admins, setAdmins] = useState<AdminInfo[]>([]);
   const [adminName, setAdminName] = useState("");
   const [adminPass, setAdminPass] = useState("");
+  const [adminKind, setAdminKind] = useState<AdminKind | null>(null);
+  const [me, setMe] = useState<string | null>(null);
   const [adminMsg, setAdminMsg] = useState("");
 
   const loadPlayers = useCallback(async () => {
@@ -70,7 +74,11 @@ export default function Manage() {
 
   const loadAdmins = useCallback(async () => {
     const res = await fetch("/api/admin/admins");
-    if (res.ok) setAdmins((await res.json()).admins);
+    if (res.ok) {
+      const data = await res.json();
+      setAdmins(data.admins);
+      setMe(data.me ?? null);
+    }
   }, []);
 
   useEffect(() => {
@@ -197,10 +205,14 @@ export default function Manage() {
   async function addAdmin(e: React.FormEvent) {
     e.preventDefault();
     setAdminMsg("");
+    if (!adminKind) {
+      setAdminMsg("Scegli il ruolo");
+      return;
+    }
     const res = await fetch("/api/admin/admins", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: adminName, password: adminPass }),
+      body: JSON.stringify({ username: adminName, password: adminPass, kind: adminKind }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -209,13 +221,15 @@ export default function Manage() {
     }
     setAdminName("");
     setAdminPass("");
+    setAdminKind(null);
     setAdminMsg("Admin creato");
     loadAdmins();
   }
 
   async function removeAdmin(a: AdminInfo) {
     if (!confirm(`Rimuovere l'admin ${a.username}?`)) return;
-    await fetch(`/api/admin/admins?id=${a.id}`, { method: "DELETE" });
+    const res = await fetch(`/api/admin/admins?id=${a.id}`, { method: "DELETE" });
+    if (!res.ok) alert((await res.json().catch(() => ({}))).error || "Errore");
     loadAdmins();
   }
 
@@ -381,11 +395,20 @@ export default function Manage() {
       <section className="card section">
         <h3>Admin</h3>
         <p className="muted" style={{ margin: 0 }}>
-          L&apos;admin principale è definito nelle impostazioni di Vercel. Qui puoi aggiungerne altri (es. gli addetti al
-          cibo).
+          Cuoco: solo ticket cibo · Giostraio: solo punti · Jolly: punti e cibo · Direttore: tutto, anche la gestione
+          degli utenti. L&apos;admin principale è definito nelle impostazioni di Vercel ed è sempre direttore.
         </p>
         {admins.map((a) => (
-          <AdminRow key={`${a.id}-${a.username}-${a.password}`} admin={a} onChanged={loadAdmins} onRemove={removeAdmin} />
+          <AdminRow
+            key={`${a.id}-${a.username}-${a.password}-${a.kind}`}
+            admin={a}
+            isMe={a.id === me}
+            onChanged={() => {
+              loadAdmins();
+              loadPlayers();
+            }}
+            onRemove={removeAdmin}
+          />
         ))}
         <form className="section" onSubmit={addAdmin}>
           <input className="input" placeholder="Nome admin" value={adminName} onChange={(e) => setAdminName(e.target.value)} />
@@ -397,6 +420,7 @@ export default function Manage() {
             value={adminPass}
             onChange={(e) => setAdminPass(e.target.value)}
           />
+          <RolePicker value={adminKind} onChange={(v) => v !== "giocatore" && setAdminKind(v)} />
           {adminMsg && <p className="muted" style={{ margin: 0 }}>{adminMsg}</p>}
           <button className="btn">Aggiungi admin</button>
         </form>
@@ -407,6 +431,11 @@ export default function Manage() {
           teams={teams}
           onClose={() => setEditing(null)}
           onSaved={loadPlayers}
+          onPromoted={() => {
+            setEditing(null);
+            loadPlayers();
+            loadAdmins();
+          }}
           onDelete={deletePlayer}
         />
       )}
