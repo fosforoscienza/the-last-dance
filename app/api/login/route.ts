@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   // Le password salvate sono senza spazi iniziali/finali (tastiere del telefono a volte li aggiungono)
   const password = String(body.password ?? "").trim();
   if (!username || !password) {
-    return NextResponse.json({ error: "Inserisci nome e password" }, { status: 400 });
+    return NextResponse.json({ error: "Inserisci nome.cognome e codice socio" }, { status: 400 });
   }
 
   // Admin principale da variabili d'ambiente

@@ -43,7 +43,8 @@ export default function LoginForm() {
       <form onSubmit={submit} className="card">
         <input
           className="input"
-          placeholder="Nome"
+          placeholder="tuonome.tuocognome"
+          aria-label="Nome e cognome"
           autoComplete="username"
           autoCapitalize="none"
           autoCorrect="off"
@@ -53,7 +54,8 @@ export default function LoginForm() {
         />
         <input
           className="input"
-          placeholder="Password"
+          placeholder="codice socio"
+          aria-label="Codice socio"
           type="password"
           autoComplete="current-password"
           value={password}
