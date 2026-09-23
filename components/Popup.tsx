@@ -1,13 +1,24 @@
 "use client";
 
 import { useEffect } from "react";
+import { playSound } from "@/lib/sounds";
 
 export type PopupData =
   | { kind: "points"; delta: number; id: number }
   | { kind: "food"; id: number }
   | { kind: "info"; text: string; id: number };
 
+const played = new WeakSet<PopupData>();
+
 export default function Popup({ data, onDone }: { data: PopupData | null; onDone: () => void }) {
+  // Suono a ogni nuovo popup (una sola volta anche se il popup viene ridisegnato)
+  useEffect(() => {
+    if (!data || played.has(data)) return;
+    played.add(data);
+    if (data.kind === "points") playSound(data.delta > 0 ? "gain" : "loss");
+    else if (data.kind === "food") playSound("food");
+  }, [data]);
+
   useEffect(() => {
     if (!data) return;
     const t = setTimeout(onDone, 2200);

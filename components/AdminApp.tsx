@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ScanFlow from "./ScanFlow";
 import Leaderboard from "./Leaderboard";
 import Manage from "./Manage";
 import LogoutButton from "./LogoutButton";
 import ChangePassword from "./ChangePassword";
+import SoundToggle from "./SoundToggle";
+import { installAutoUnlock } from "@/lib/sounds";
 import { can, kindLabel, type AdminKind } from "@/lib/roles";
 
 type Tab = "scan" | "board" | "manage";
@@ -21,6 +23,7 @@ export default function AdminApp({ adminName, kind, isMain }: { adminName: strin
     ...(canManage ? [{ id: "manage" as Tab, label: "Gestione" }] : []),
   ];
   const [tab, setTab] = useState<Tab>(tabs[0].id);
+  useEffect(() => installAutoUnlock(), []);
   return (
     <div className="admin">
       <div className="topbar">
@@ -29,6 +32,7 @@ export default function AdminApp({ adminName, kind, isMain }: { adminName: strin
           <span className="muted">{adminName}</span>
         </div>
         <div className="row">
+          <SoundToggle />
           {isMain && <ChangePassword />}
           <LogoutButton />
         </div>

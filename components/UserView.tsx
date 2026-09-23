@@ -8,12 +8,15 @@ import FoodIcon from "./FoodIcon";
 import Popup from "./Popup";
 import LogoutButton from "./LogoutButton";
 import Leaderboard from "./Leaderboard";
+import SoundToggle from "./SoundToggle";
+import { installAutoUnlock } from "@/lib/sounds";
 import { usePopupQueue } from "@/lib/usePopupQueue";
 
 export default function UserView({ initial }: { initial: Player }) {
   const [player, setPlayer] = useState<Player>(initial);
   const [bump, setBump] = useState(0);
   const [showBoard, setShowBoard] = useState(false);
+  useEffect(() => installAutoUnlock(), []);
   const last = useRef<Player>(initial);
   const { current, push, done } = usePopupQueue();
 
@@ -70,8 +73,9 @@ export default function UserView({ initial }: { initial: Player }) {
           {player.team && <span className="team-badge">{player.team}</span>}
         </div>
         <div className="row">
-          <button className="btn btn-ghost btn-small" onClick={() => setShowBoard(true)}>
-            Classifica
+          <SoundToggle />
+          <button className="btn btn-ghost btn-small" onClick={() => setShowBoard(true)} aria-label="Classifica">
+            🏆
           </button>
           <LogoutButton />
         </div>

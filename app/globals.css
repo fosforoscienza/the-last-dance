@@ -1060,3 +1060,40 @@ input {
   background: rgba(231, 185, 76, 0.28);
   outline: 2px solid var(--gold);
 }
+
+/* pulsante suoni */
+.sound-toggle {
+  font-size: 0.9rem;
+  text-transform: none;
+}
+.sound-toggle.pulse {
+  animation: pulse 1.4s ease-in-out infinite;
+  border-color: var(--gold);
+  color: var(--gold);
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(231, 185, 76, 0.6); }
+  50% { box-shadow: 0 0 0 6px rgba(231, 185, 76, 0); }
+}
+
+/* intestazioni con più pulsanti: si stringono e vanno a capo sui telefoni piccoli */
+.user-head > div:first-child,
+.topbar > div:first-child {
+  min-width: 0;
+}
+.user-head > .row {
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  gap: 6px;
+}
+.topbar > .row {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-shrink: 1;
+}
+.user-head > .row .btn-small,
+.topbar > .row .btn-small {
+  padding: 7px 10px;
+  font-size: 0.72rem;
+}
