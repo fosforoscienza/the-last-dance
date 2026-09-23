@@ -1011,3 +1011,52 @@ input {
   color: var(--cream-dark);
   text-align: right;
 }
+
+/* pulsanti rapidi punti */
+.quick-pad {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.quick-pad button {
+  min-height: 0;
+  border: none;
+  border-radius: 24px;
+  font-weight: 900;
+  font-size: clamp(2rem, 11vw, 3.2rem);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3);
+}
+.quick-pad button:active {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3);
+}
+.quick-pad button:disabled {
+  opacity: 0.6;
+}
+.quick-plus {
+  background: var(--green);
+}
+.quick-minus {
+  background: var(--red);
+}
+
+/* classifica vista dal giocatore */
+.board-overlay {
+  position: fixed;
+  inset: 0 0 calc(var(--footer-h) + env(safe-area-inset-bottom)) 0;
+  z-index: 30;
+  background: var(--bordeaux-deep);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: max(16px, env(safe-area-inset-top)) 16px 12px;
+}
+.board li.me {
+  background: rgba(231, 185, 76, 0.28);
+  outline: 2px solid var(--gold);
+}

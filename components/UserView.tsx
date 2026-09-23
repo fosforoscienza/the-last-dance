@@ -7,11 +7,13 @@ import { PLAYER_COLUMNS, TICKETS, type Player } from "@/lib/types";
 import FoodIcon from "./FoodIcon";
 import Popup from "./Popup";
 import LogoutButton from "./LogoutButton";
+import Leaderboard from "./Leaderboard";
 import { usePopupQueue } from "@/lib/usePopupQueue";
 
 export default function UserView({ initial }: { initial: Player }) {
   const [player, setPlayer] = useState<Player>(initial);
   const [bump, setBump] = useState(0);
+  const [showBoard, setShowBoard] = useState(false);
   const last = useRef<Player>(initial);
   const { current, push, done } = usePopupQueue();
 
@@ -67,7 +69,12 @@ export default function UserView({ initial }: { initial: Player }) {
           <h1 className="title">{player.name}</h1>
           {player.team && <span className="team-badge">{player.team}</span>}
         </div>
-        <LogoutButton />
+        <div className="row">
+          <button className="btn btn-ghost btn-small" onClick={() => setShowBoard(true)}>
+            Classifica
+          </button>
+          <LogoutButton />
+        </div>
       </div>
 
       <div className="qr-wrap">
@@ -91,6 +98,18 @@ export default function UserView({ initial }: { initial: Player }) {
           </div>
         ))}
       </div>
+
+      {showBoard && (
+        <div className="board-overlay">
+          <div className="topbar">
+            <h2 className="title" style={{ fontSize: "1.3rem" }}>Classifica</h2>
+            <button className="btn btn-ghost btn-small" onClick={() => setShowBoard(false)} aria-label="Chiudi">
+              ✕
+            </button>
+          </div>
+          <Leaderboard highlightId={player.id} highlightTeam={player.team || undefined} />
+        </div>
+      )}
 
       <Popup data={current} onDone={done} />
     </div>

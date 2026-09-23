@@ -16,7 +16,8 @@ export default function AdminApp({ adminName, kind, isMain }: { adminName: strin
   const canManage = can(kind, "manage");
   const tabs: { id: Tab; label: string }[] = [
     ...(canPoints || canFood ? [{ id: "scan" as Tab, label: "Scanner" }] : []),
-    { id: "board", label: "Classifica" },
+    // Il cuoco non ha bisogno della classifica
+    ...(kind !== "cuoco" ? [{ id: "board" as Tab, label: "Classifica" }] : []),
     ...(canManage ? [{ id: "manage" as Tab, label: "Gestione" }] : []),
   ];
   const [tab, setTab] = useState<Tab>(tabs[0].id);
@@ -32,6 +33,7 @@ export default function AdminApp({ adminName, kind, isMain }: { adminName: strin
           <LogoutButton />
         </div>
       </div>
+      {tabs.length > 1 && (
       <div className="tabs" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
         {tabs.map((t) => (
           <button key={t.id} className={`tab ${tab === t.id ? "active" : ""}`} onClick={() => setTab(t.id)}>
@@ -39,6 +41,7 @@ export default function AdminApp({ adminName, kind, isMain }: { adminName: strin
           </button>
         ))}
       </div>
+      )}
       {/* Lo scanner resta montato anche sulle altre schede, così la fotocamera rimane autorizzata */}
       {(canPoints || canFood) && (
         <div className="panel" style={tab === "scan" ? undefined : { display: "none" }}>

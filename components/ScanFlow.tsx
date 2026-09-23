@@ -12,6 +12,8 @@ import { TICKETS, type Player, type TicketKey } from "@/lib/types";
 type Mode = "scan" | "loading" | "player" | "points" | "food";
 
 const MAX_DIGITS = 7;
+// Pulsanti rapidi per i punti
+const QUICK_AMOUNTS = [100, 200, 300, -100];
 
 export default function ScanFlow({
   canPoints,
@@ -165,6 +167,8 @@ export default function ScanFlow({
 }
 
 function PointsPad({ player, onDone }: { player: Player; onDone: (p: Player, requested: number, before: number) => void }) {
+  // Di default i pulsanti rapidi; "Altro importo" apre il tastierino
+  const [custom, setCustom] = useState(false);
   const [sign, setSign] = useState<1 | -1>(1);
   const [digits, setDigits] = useState("");
   const [busy, setBusy] = useState(false);
@@ -186,10 +190,14 @@ function PointsPad({ player, onDone }: { player: Player; onDone: (p: Player, req
       setError("Digita un numero");
       return;
     }
+    await send(sign * value);
+  }
+
+  async function send(delta: number) {
+    if (busy) return;
     setBusy(true);
     setError("");
     try {
-      const delta = sign * value;
       const before = player.points;
       const res = await fetch("/api/admin/points", {
         method: "POST",
@@ -205,8 +213,29 @@ function PointsPad({ player, onDone }: { player: Player; onDone: (p: Player, req
     }
   }
 
+  if (!custom) {
+    return (
+      <>
+        {error && <p className="error">{error}</p>}
+        <div className="quick-pad">
+          {QUICK_AMOUNTS.map((n) => (
+            <button key={n} className={n > 0 ? "quick-plus" : "quick-minus"} disabled={busy} onClick={() => send(n)}>
+              {n > 0 ? `+${n}` : `−${Math.abs(n)}`}
+            </button>
+          ))}
+        </div>
+        <button className="btn btn-ghost" style={{ flexShrink: 0 }} disabled={busy} onClick={() => setCustom(true)}>
+          ⌨ Altro importo
+        </button>
+      </>
+    );
+  }
+
   return (
     <>
+      <button className="manual-link" style={{ alignSelf: "flex-start", padding: 0 }} onClick={() => setCustom(false)}>
+        ← Pulsanti rapidi
+      </button>
       <div className="pad-display">
         <div className="sign-toggle">
           <button className={sign === 1 ? "on-plus" : ""} onClick={() => setSign(1)} aria-label="Aggiungi">

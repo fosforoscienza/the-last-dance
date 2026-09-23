@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { PLAYER_COLUMNS, type Player } from "@/lib/types";
 
-export default function Leaderboard() {
+// highlightId: evidenzia il giocatore (e la sua squadra) nella vista dell'utente
+export default function Leaderboard({ highlightId, highlightTeam }: { highlightId?: string; highlightTeam?: string } = {}) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"players" | "teams">("players");
@@ -145,7 +146,10 @@ export default function Leaderboard() {
                 lastPoints = r.points;
               }
               return (
-                <li key={r.id} className={r.flash ? "flash" : ""}>
+                <li
+                  key={r.id}
+                  className={`${r.flash ? "flash" : ""} ${r.id === highlightId || (highlightTeam && r.id === `team:${highlightTeam}`) ? "me" : ""}`}
+                >
                   <span className={`rank rank-${lastRank}`}>{lastRank}</span>
                   <span className="who">
                     <strong>{r.title}</strong>
