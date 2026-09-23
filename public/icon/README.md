@@ -1,10 +1,12 @@
 # Icona dell'app
 
-Carica qui l'icona con il nome **`icon.png`**:
+`icon.png` è l'originale (quadrato, alta risoluzione). Da questo sono ricavate le versioni usate dal sito:
 
-- quadrata, almeno **512×512 px** (meglio 1024×1024)
-- PNG; per iPhone è meglio **senza trasparenza** (lo sfondo trasparente diventa nero sulla schermata Home)
-- tieni il disegno un po' lontano dai bordi: Android e iOS arrotondano gli angoli
+| File | Uso |
+|---|---|
+| `favicon-32.png`, `favicon-48.png` | favicon nella scheda del browser |
+| `icon-192.png`, `icon-512.png` | icona Android / manifest |
+| `apple-touch-icon.png` (180×180, senza trasparenza) | icona iPhone sulla schermata Home |
+| `maskable-512.png` (senza trasparenza) | icona Android adattiva |
 
-Viene usata come favicon del sito e come icona quando si aggiunge la scorciatoia
-alla schermata Home del telefono.
+Se cambi `icon.png`, chiedi di rigenerare le altre versioni.

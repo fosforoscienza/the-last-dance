@@ -10,9 +10,13 @@ export const metadata: Metadata = {
   description: "The LAST Dance — punti e ticket",
   applicationName: "The LAST Dance",
   icons: {
-    icon: [{ url: "/icon/icon.png", type: "image/png" }],
-    shortcut: "/icon/icon.png",
-    apple: [{ url: "/icon/icon.png", sizes: "180x180", type: "image/png" }],
+    icon: [
+      { url: "/icon/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon/favicon-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/icon/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    shortcut: "/icon/favicon-48.png",
+    apple: [{ url: "/icon/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   // iPhone: aperta dalla schermata Home si comporta come un'app a tutto schermo
   appleWebApp: {
