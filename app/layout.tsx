@@ -18,11 +18,13 @@ export const metadata: Metadata = {
     shortcut: "/icon/favicon-48.png",
     apple: [{ url: "/icon/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
-  // iPhone: aperta dalla schermata Home si comporta come un'app a tutto schermo
+  // iPhone: aperta dalla schermata Home si comporta come un'app a tutto schermo.
+  // Barra di stato "black" e non "black-translucent": con quella trasparente l'iPhone accorcia
+  // la pagina dell'altezza della barra di stato e lascia una banda vuota sotto il footer.
   appleWebApp: {
     capable: true,
     title: "LAST Dance",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "black",
   },
 };
 

@@ -27,7 +27,8 @@ body {
 }
 
 body {
-  background: var(--bordeaux);
+  /* stesso colore del footer: se il telefono lascia spazio sotto il footer, sembra footer */
+  background: #400a12;
   color: var(--cream);
   font-family: var(--font-poppins), system-ui, sans-serif;
   font-weight: 400;
