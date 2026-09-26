@@ -125,3 +125,35 @@ begin
     alter publication supabase_realtime add table public.treasure_winners;
   end if;
 end $$;
+
+-- Risposte sbagliate per ogni domanda: dopo 2 errori il simbolo è perso. Solo lato server.
+create table if not exists public.treasure_wrong (
+  player_id   uuid not null references public.players (id) on delete cascade,
+  question    smallint not null check (question between 1 and 10),
+  wrong       smallint not null default 0,
+  updated_at  timestamptz not null default now(),
+  primary key (player_id, question)
+);
+alter table public.treasure_wrong enable row level security;
+
+-- Aggiunge una risposta sbagliata in modo atomico e restituisce il totale
+create or replace function public.treasure_wrong_answer(p_player uuid, p_question integer)
+returns smallint
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  result smallint;
+begin
+  insert into public.treasure_wrong (player_id, question, wrong)
+  values (p_player, p_question, 1)
+  on conflict (player_id, question)
+  do update set wrong = treasure_wrong.wrong + 1, updated_at = now()
+  returning wrong into result;
+  return result;
+end;
+$$;
+
+revoke all on function public.treasure_wrong_answer(uuid, integer) from public, anon, authenticated;
+grant execute on function public.treasure_wrong_answer(uuid, integer) to service_role;

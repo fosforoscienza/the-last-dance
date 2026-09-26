@@ -10,6 +10,11 @@ export type PopupData =
 
 const played = new WeakSet<PopupData>();
 
+// I messaggi lunghi restano a schermo più a lungo, per poterli leggere
+function duration(data: PopupData) {
+  return data.kind === "info" && data.text.length > 24 ? 3500 : 2200;
+}
+
 export default function Popup({ data, onDone }: { data: PopupData | null; onDone: () => void }) {
   // Suono a ogni nuovo popup (una sola volta anche se il popup viene ridisegnato)
   useEffect(() => {
@@ -22,7 +27,7 @@ export default function Popup({ data, onDone }: { data: PopupData | null; onDone
 
   useEffect(() => {
     if (!data) return;
-    const t = setTimeout(onDone, 2200);
+    const t = setTimeout(onDone, duration(data));
     return () => clearTimeout(t);
   }, [data, onDone]);
 
@@ -45,9 +50,9 @@ export default function Popup({ data, onDone }: { data: PopupData | null; onDone
   }
 
   return (
-    <div className="popup-backdrop" onClick={onDone} key={data.id}>
+    <div className="popup-backdrop" onClick={onDone} key={data.id} style={{ animationDuration: `${duration(data)}ms` }}>
       <div className={cls}>
-        <div className={data.kind === "points" ? "popup-big" : "popup-text"}>{big}</div>
+        <div className={data.kind === "points" ? "popup-big" : `popup-text ${duration(data) > 2200 ? "popup-long" : ""}`}>{big}</div>
         {small && <div className="popup-small">{small}</div>}
       </div>
     </div>

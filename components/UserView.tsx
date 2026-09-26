@@ -13,12 +13,21 @@ import Treasure from "./Treasure";
 import { installAutoUnlock } from "@/lib/sounds";
 import { usePopupQueue } from "@/lib/usePopupQueue";
 
-export default function UserView({ initial, treasureFound }: { initial: Player; treasureFound: number[] }) {
+export default function UserView({
+  initial,
+  treasureFound,
+  treasureLocked,
+}: {
+  initial: Player;
+  treasureFound: number[];
+  treasureLocked: number[];
+}) {
   const [player, setPlayer] = useState<Player>(initial);
   const [bump, setBump] = useState(0);
   const [showBoard, setShowBoard] = useState(false);
   const [showTreasure, setShowTreasure] = useState(false);
   const [found, setFound] = useState<number[]>(treasureFound);
+  const [locked, setLocked] = useState<number[]>(treasureLocked);
   useEffect(() => installAutoUnlock(), []);
   const last = useRef<Player>(initial);
   const { current, push, done } = usePopupQueue();
@@ -130,7 +139,15 @@ export default function UserView({ initial, treasureFound }: { initial: Player; 
         </div>
       )}
 
-      {showTreasure && <Treasure found={found} onFound={setFound} onClose={() => setShowTreasure(false)} />}
+      {showTreasure && (
+        <Treasure
+          found={found}
+          locked={locked}
+          onFound={setFound}
+          onLocked={(n) => setLocked((l) => (l.includes(n) ? l : [...l, n]))}
+          onClose={() => setShowTreasure(false)}
+        />
+      )}
 
       <Popup data={current} onDone={done} />
     </div>

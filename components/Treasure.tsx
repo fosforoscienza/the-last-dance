@@ -18,7 +18,7 @@ async function post(url: string, body: unknown) {
   return data;
 }
 
-function SymbolCard({ n, year, found, fresh }: { n: number; year: number; found: boolean; fresh: boolean }) {
+function SymbolCard({ n, year, found, lost, fresh }: { n: number; year: number; found: boolean; lost: boolean; fresh: boolean }) {
   const [broken, setBroken] = useState(false);
   const img = useRef<HTMLImageElement>(null);
   // L'errore di caricamento può arrivare prima che React agganci onError
@@ -27,10 +27,11 @@ function SymbolCard({ n, year, found, fresh }: { n: number; year: number; found:
     if (el && el.complete && el.naturalWidth === 0) setBroken(true);
   }, []);
   return (
-    <div className={`treasure-card ${found ? "found" : ""} ${fresh ? "fresh" : ""}`}>
+    <div className={`treasure-card ${found ? "found" : ""} ${lost ? "lost" : ""} ${fresh ? "fresh" : ""}`}>
       <span className="treasure-year">{year}</span>
       <div className="treasure-symbol">
-        {broken ? (
+        {/* Sbagliato troppe volte: il simbolo sparisce */}
+        {lost ? null : broken ? (
           <span className="treasure-missing">?</span>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
@@ -43,11 +44,15 @@ function SymbolCard({ n, year, found, fresh }: { n: number; year: number; found:
 
 export default function Treasure({
   found,
+  locked,
   onFound,
+  onLocked,
   onClose,
 }: {
   found: number[];
+  locked: number[];
   onFound: (found: number[]) => void;
+  onLocked: (n: number) => void;
   onClose: () => void;
 }) {
   const [view, setView] = useState<View>("grid");
@@ -55,6 +60,7 @@ export default function Treasure({
   const [cameraOn, setCameraOn] = useState(false);
   const [question, setQuestion] = useState<TreasureQuestion | null>(null);
   const [code, setCode] = useState("");
+  const [lastTry, setLastTry] = useState(false);
   const [fresh, setFresh] = useState<number | null>(null);
   const [showPrize, setShowPrize] = useState(false);
   const { current, push, done } = usePopupQueue();
@@ -70,7 +76,14 @@ export default function Treasure({
           setView("grid");
           return;
         }
+        if (data.locked) {
+          onLocked(data.number);
+          push({ kind: "info", text: "Hai sbagliato troppe volte, cercane un'altra!", tone: "red" });
+          setView("grid");
+          return;
+        }
         setCode(value);
+        setLastTry(data.attemptsLeft === 1);
         setQuestion(data.question);
         setView("question");
       } catch (e) {
@@ -78,7 +91,7 @@ export default function Treasure({
         setView("grid");
       }
     },
-    [push]
+    [push, onLocked]
   );
 
   const answer = async (i: number) => {
@@ -89,7 +102,12 @@ export default function Treasure({
       setQuestion(null);
       setView("grid");
       if (!data.correct) {
-        push({ kind: "info", text: "Risposta sbagliata!", tone: "red" });
+        if (data.locked) {
+          onLocked(data.number);
+          push({ kind: "info", text: "Sbagliato di nuovo! Simbolo perso", tone: "red" });
+        } else {
+          push({ kind: "info", text: data.attemptsLeft === 1 ? "Sbagliato! Ti resta un tentativo" : "Risposta sbagliata!", tone: "red" });
+        }
         return;
       }
       onFound(data.found);
@@ -135,7 +153,14 @@ export default function Treasure({
           <div className="treasure-board">
             <div className="treasure-grid">
               {TREASURE_YEARS.map((year, i) => (
-                <SymbolCard key={year} n={i + 1} year={year} found={found.includes(i + 1)} fresh={fresh === i + 1} />
+                <SymbolCard
+                  key={year}
+                  n={i + 1}
+                  year={year}
+                  found={found.includes(i + 1)}
+                  lost={locked.includes(i + 1)}
+                  fresh={fresh === i + 1}
+                />
               ))}
             </div>
           </div>
@@ -158,6 +183,7 @@ export default function Treasure({
                 ✕
               </button>
             </div>
+            {lastTry && <p className="treasure-last">Ultimo tentativo!</p>}
             <p className="treasure-q">{question.text}</p>
             <div className="treasure-answers">
               {question.answers.map((a, i) => (

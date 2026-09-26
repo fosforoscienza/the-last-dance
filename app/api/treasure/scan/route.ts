@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { questionForCode } from "@/lib/treasure-codes";
+import { wrongCount } from "@/lib/treasure-db";
 import { TREASURE_QUESTIONS } from "@/lib/treasure-questions";
-import { TREASURE_YEARS, type TreasureQuestion } from "@/lib/treasure";
+import { TREASURE_MAX_ATTEMPTS, TREASURE_YEARS, type TreasureQuestion } from "@/lib/treasure";
 
 // Il giocatore ha scansionato un QR: se è della caccia al tesoro restituisce la domanda (senza la soluzione)
 export async function POST(req: Request) {
@@ -21,7 +22,9 @@ export async function POST(req: Request) {
     .eq("question", n)
     .maybeSingle();
   if (data) return NextResponse.json({ number: n, alreadyFound: true });
+  const wrong = await wrongCount(session.playerId, n);
+  if (wrong >= TREASURE_MAX_ATTEMPTS) return NextResponse.json({ number: n, locked: true });
 
   const question: TreasureQuestion = { number: n, year: TREASURE_YEARS[n - 1], text: def.text, answers: [...def.answers] };
-  return NextResponse.json({ question });
+  return NextResponse.json({ question, attemptsLeft: TREASURE_MAX_ATTEMPTS - wrong });
 }

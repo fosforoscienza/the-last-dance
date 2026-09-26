@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { questionForCode } from "@/lib/treasure-codes";
+import { addWrong, wrongCount } from "@/lib/treasure-db";
 import { LETTERS, TREASURE_QUESTIONS } from "@/lib/treasure-questions";
-import { TREASURE_TOTAL } from "@/lib/treasure";
+import { TREASURE_MAX_ATTEMPTS, TREASURE_TOTAL } from "@/lib/treasure";
 
 // Risposta a una domanda. Serve di nuovo il contenuto del QR: senza averlo scansionato non si risponde.
 export async function POST(req: Request) {
@@ -18,7 +19,13 @@ export async function POST(req: Request) {
   if (!Number.isInteger(answer) || answer < 0 || answer >= LETTERS.length) {
     return NextResponse.json({ error: "Scegli una risposta" }, { status: 400 });
   }
-  if (LETTERS[answer] !== def.correct) return NextResponse.json({ correct: false });
+  // Simbolo perso: niente altri tentativi
+  if ((await wrongCount(playerId, n)) >= TREASURE_MAX_ATTEMPTS) return NextResponse.json({ correct: false, number: n, locked: true });
+  if (LETTERS[answer] !== def.correct) {
+    const wrong = await addWrong(playerId, n);
+    const locked = wrong !== null && wrong >= TREASURE_MAX_ATTEMPTS;
+    return NextResponse.json({ correct: false, number: n, locked, attemptsLeft: wrong === null ? null : Math.max(0, TREASURE_MAX_ATTEMPTS - wrong) });
+  }
 
   const db = supabaseAdmin();
   const { error } = await db
