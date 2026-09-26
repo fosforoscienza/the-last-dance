@@ -10,9 +10,6 @@
   --red: #e5383b;
   --yellow: #ffd23f;
   --footer-h: 64px;
-  /* Altezza dello schermo: di norma quella della finestra; sull'iPhone aperto dalla schermata Home
-     la imposta ViewportFix, perché lì la finestra risulta più corta della barra di stato */
-  --app-h: 100%;
 }
 
 * {
@@ -44,8 +41,7 @@ input {
 /* ---------- sfondo circo ---------- */
 .bg-drawing {
   position: fixed;
-  inset: 0 0 auto 0;
-  height: var(--app-h);
+  inset: 0;
   background: url("/circus.svg") center / cover no-repeat;
   opacity: 0.18;
   z-index: 0;
@@ -53,17 +49,17 @@ input {
 }
 .bg-overlay {
   position: fixed;
-  inset: 0 0 auto 0;
-  height: var(--app-h);
+  inset: 0;
   background: rgba(90, 14, 24, 0.45);
   z-index: 0;
   pointer-events: none;
 }
 
+/* Tutto lo schermo, fino al bordo in basso. Con 100dvh l'iPhone, aperto dalla schermata Home,
+   lasciava sotto il footer una banda alta quanto la barra di stato. */
 .app {
   position: fixed;
-  inset: 0 0 auto 0;
-  height: var(--app-h);
+  inset: 0;
   z-index: 1;
   display: flex;
   flex-direction: column;
@@ -341,8 +337,7 @@ input {
 /* ---------- popup ---------- */
 .popup-backdrop {
   position: fixed;
-  inset: 0 0 auto 0;
-  height: var(--app-h);
+  inset: 0;
   z-index: 50;
   display: flex;
   align-items: center;
@@ -827,8 +822,7 @@ input {
 /* modifica utente */
 .modal-backdrop {
   position: fixed;
-  inset: 0 0 auto 0;
-  height: var(--app-h);
+  inset: 0;
   z-index: 40;
   background: rgba(20, 3, 6, 0.7);
   display: flex;
@@ -1060,8 +1054,7 @@ input {
 /* classifica vista dal giocatore */
 .board-overlay {
   position: fixed;
-  inset: 0 0 auto 0;
-  height: calc(var(--app-h) - var(--footer-h) - env(safe-area-inset-bottom));
+  inset: 0 0 calc(var(--footer-h) + env(safe-area-inset-bottom)) 0;
   z-index: 30;
   background: var(--bordeaux-deep);
   display: flex;
@@ -1276,8 +1269,7 @@ input {
 /* popup del super premio (resta aperto finché non si tocca OK) */
 .prize-backdrop {
   position: fixed;
-  inset: 0 0 auto 0;
-  height: var(--app-h);
+  inset: 0;
   z-index: 60;
   display: flex;
   align-items: center;
