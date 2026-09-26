@@ -219,7 +219,8 @@ input {
   gap: 8px;
 }
 .user-head .title {
-  font-size: clamp(1.3rem, 5.5vw, 1.8rem);
+  font-size: clamp(0.95rem, 4.4vw, 1.6rem);
+  overflow-wrap: anywhere;
 }
 .team-badge {
   display: inline-block;
@@ -1099,6 +1100,15 @@ input {
 }
 
 /* ---------- caccia al tesoro ---------- */
+.treasure-open {
+  width: 100%;
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  border-radius: 12px;
+  background: var(--gold);
+  color: var(--bordeaux-deep);
+}
 .treasure-scan-btn {
   flex-shrink: 0;
   font-size: 1.1rem;

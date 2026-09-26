@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { PLAYER_COLUMNS, TICKETS, type Player } from "@/lib/types";
@@ -72,14 +72,19 @@ export default function UserView({ initial, treasureFound }: { initial: Player; 
     <div className="user">
       <div className="user-head">
         <div>
-          <h1 className="title">{player.name}</h1>
+          <h1 className="title">
+            {/* Nomi tipo "nome.cognome": possono andare a capo dopo il punto invece di finire sotto i pulsanti */}
+            {player.name.split(/(?<=[._-])/).map((part, i) => (
+              <Fragment key={i}>
+                {i > 0 && <wbr />}
+                {part}
+              </Fragment>
+            ))}
+          </h1>
           {player.team && <span className="team-badge">{player.team}</span>}
         </div>
         <div className="row">
           <SoundToggle />
-          <button className="btn btn-ghost btn-small" onClick={() => setShowTreasure(true)} aria-label="Caccia al tesoro">
-            🗺️
-          </button>
           <button className="btn btn-ghost btn-small" onClick={() => setShowBoard(true)} aria-label="Classifica">
             🏆
           </button>
@@ -108,6 +113,10 @@ export default function UserView({ initial, treasureFound }: { initial: Player; 
           </div>
         ))}
       </div>
+
+      <button className="btn treasure-open" onClick={() => setShowTreasure(true)}>
+        🗺️ Caccia al tesoro
+      </button>
 
       {showBoard && (
         <div className="board-overlay">
