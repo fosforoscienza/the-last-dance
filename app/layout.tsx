@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import Footer from "@/components/Footer";
+import ViewportFix from "@/components/ViewportFix";
 import "./globals.css";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "900"], variable: "--font-poppins" });
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="it" className={poppins.variable}>
       <body>
+        <ViewportFix />
         <div className="bg-drawing" aria-hidden />
         <div className="bg-overlay" aria-hidden />
         <div className="app">
