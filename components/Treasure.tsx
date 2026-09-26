@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Scanner from "./Scanner";
 import Popup from "./Popup";
 import PrizePopup from "./PrizePopup";
@@ -20,6 +20,12 @@ async function post(url: string, body: unknown) {
 
 function SymbolCard({ n, year, found, fresh }: { n: number; year: number; found: boolean; fresh: boolean }) {
   const [broken, setBroken] = useState(false);
+  const img = useRef<HTMLImageElement>(null);
+  // L'errore di caricamento può arrivare prima che React agganci onError
+  useEffect(() => {
+    const el = img.current;
+    if (el && el.complete && el.naturalWidth === 0) setBroken(true);
+  }, []);
   return (
     <div className={`treasure-card ${found ? "found" : ""} ${fresh ? "fresh" : ""}`}>
       <span className="treasure-year">{year}</span>
@@ -28,7 +34,7 @@ function SymbolCard({ n, year, found, fresh }: { n: number; year: number; found:
           <span className="treasure-missing">?</span>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={symbolSrc(n)} alt="" draggable={false} onError={() => setBroken(true)} />
+          <img ref={img} src={symbolSrc(n)} alt="" draggable={false} onError={() => setBroken(true)} />
         )}
       </div>
     </div>
@@ -126,7 +132,7 @@ export default function Treasure({
             {view === "checking" ? "Controllo…" : "Scansiona QR code 📷"}
           </button>
           {won && <div className="treasure-won">🏆 Hai vinto il super premio!</div>}
-          <div className="treasure-scroll scroll">
+          <div className="treasure-board">
             <div className="treasure-grid">
               {TREASURE_YEARS.map((year, i) => (
                 <SymbolCard key={year} n={i + 1} year={year} found={found.includes(i + 1)} fresh={fresh === i + 1} />

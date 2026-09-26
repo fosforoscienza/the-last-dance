@@ -1099,14 +1099,10 @@ input {
 }
 
 /* ---------- caccia al tesoro ---------- */
-.treasure {
-  /* quanto sono sfocati i simboli non ancora trovati */
-  --symbol-blur: 9px;
-}
 .treasure-scan-btn {
   flex-shrink: 0;
   font-size: 1.1rem;
-  padding: 18px;
+  padding: 14px;
   text-transform: none;
   letter-spacing: 0;
 }
@@ -1116,35 +1112,43 @@ input {
   font-weight: 900;
   color: var(--gold);
 }
-.treasure-scroll {
+/* le 10 caselle entrano sempre nello spazio rimasto, senza scorrere:
+   il lato di ogni casella è il più grande che ci sta sia in larghezza (2 colonne) sia in altezza (5 righe) */
+.treasure-board {
   flex: 1;
   min-height: 0;
+  container-type: size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .treasure-grid {
+  --gap: clamp(6px, 1.6cqh, 14px);
+  --cell: min(150px, calc((100cqw - 8px - var(--gap)) / 2), calc((100cqh - 8px - 4 * var(--gap)) / 5));
+  /* quanto sono sfocati i simboli non ancora trovati (in proporzione alla casella) */
+  --symbol-blur: calc(var(--cell) * 0.08);
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 150px));
-  justify-content: center;
-  align-content: start;
-  gap: 14px;
-  padding: 10px 8px 14px;
+  grid-template-columns: repeat(2, var(--cell));
+  grid-auto-rows: var(--cell);
+  gap: var(--gap);
 }
 .treasure-card {
-  aspect-ratio: 1;
   min-width: 0;
-  border-radius: 16px;
+  min-height: 0;
+  border-radius: calc(var(--cell) * 0.14);
   background: var(--cream);
   color: var(--bordeaux-deep);
-  border: 4px solid transparent;
+  border: 3px solid transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6px;
+  padding: calc(var(--cell) * 0.04);
   overflow: hidden;
   transition: border-color 0.6s, box-shadow 0.6s;
 }
 .treasure-year {
   font-weight: 900;
-  font-size: 0.95rem;
+  font-size: clamp(0.7rem, calc(var(--cell) * 0.13), 0.95rem);
   line-height: 1.2;
 }
 .treasure-symbol {
@@ -1169,7 +1173,7 @@ input {
 }
 .treasure-missing {
   font-weight: 900;
-  font-size: 2.4rem;
+  font-size: calc(var(--cell) * 0.3);
   color: rgba(61, 8, 16, 0.25);
 }
 .treasure-card.found {
