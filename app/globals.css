@@ -55,10 +55,12 @@ input {
   pointer-events: none;
 }
 
+/* Tutto lo schermo, fino al bordo in basso. Con 100dvh l'iPhone, aperto dalla schermata Home,
+   lasciava sotto il footer una banda alta quanto la barra di stato. */
 .app {
-  position: relative;
+  position: fixed;
+  inset: 0;
   z-index: 1;
-  height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -1118,6 +1120,14 @@ input {
   padding: 14px;
   text-transform: none;
   letter-spacing: 0;
+}
+.treasure-hint {
+  flex-shrink: 0;
+  margin: 0;
+  text-align: center;
+  font-size: clamp(0.78rem, 3.6vw, 0.9rem);
+  line-height: 1.3;
+  color: var(--cream-dark);
 }
 .treasure-won {
   flex-shrink: 0;

@@ -149,6 +149,7 @@ export default function Treasure({
           >
             {view === "checking" ? "Controllo…" : "Scansiona QR code 📷"}
           </button>
+          <p className="treasure-hint">Cerca i QR code nelle giostre e scansionali per sbloccare le tue 10 medaglie</p>
           {won && <div className="treasure-won">🏆 Hai vinto il super premio!</div>}
           <div className="treasure-board">
             <div className="treasure-grid">
