@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import type { PopupData } from "@/components/Popup";
 
-type NewPopup = { kind: "points"; delta: number } | { kind: "food" } | { kind: "info"; text: string };
+type NewPopup = { kind: "points"; delta: number } | { kind: "food" } | { kind: "info"; text: string; tone?: "green" | "red" };
 
 export function usePopupQueue() {
   const [current, setCurrent] = useState<PopupData | null>(null);

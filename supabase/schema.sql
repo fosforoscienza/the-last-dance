@@ -89,3 +89,39 @@ begin
     alter publication supabase_realtime add table public.players;
   end if;
 end $$;
+
+-- ============================================================
+-- Caccia al tesoro
+-- ============================================================
+
+-- Domande a cui ogni giocatore ha risposto correttamente (1…10). Solo lato server.
+create table if not exists public.treasure_found (
+  player_id   uuid not null references public.players (id) on delete cascade,
+  question    smallint not null check (question between 1 and 10),
+  created_at  timestamptz not null default now(),
+  primary key (player_id, question)
+);
+alter table public.treasure_found enable row level security;
+-- Nessuna policy su treasure_found => accesso negato a anon/authenticated.
+
+-- Chi ha trovato tutti i simboli: leggibile dal browser per avvisare gli admin in tempo reale.
+create table if not exists public.treasure_winners (
+  player_id  uuid primary key references public.players (id) on delete cascade,
+  name       text not null,
+  won_at     timestamptz not null default now()
+);
+alter table public.treasure_winners enable row level security;
+
+drop policy if exists "treasure winners are readable" on public.treasure_winners;
+create policy "treasure winners are readable" on public.treasure_winners
+  for select to anon, authenticated using (true);
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'treasure_winners'
+  ) then
+    alter publication supabase_realtime add table public.treasure_winners;
+  end if;
+end $$;

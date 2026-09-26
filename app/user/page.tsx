@@ -12,5 +12,8 @@ export default async function UserPage() {
   if (session.role === "admin") redirect("/admin");
   const { data } = await supabaseAdmin().from("players").select(PLAYER_COLUMNS).eq("id", session.playerId!).maybeSingle();
   if (!data) redirect("/api/logout-redirect");
-  return <UserView initial={data as Player} />;
+  // Simboli già trovati nella caccia al tesoro (vuoto se la tabella non esiste ancora)
+  const { data: found } = await supabaseAdmin().from("treasure_found").select("question").eq("player_id", session.playerId!);
+  const treasureFound = (found ?? []).map((r) => Number(r.question));
+  return <UserView initial={data as Player} treasureFound={treasureFound} />;
 }

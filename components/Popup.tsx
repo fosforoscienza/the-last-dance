@@ -6,7 +6,7 @@ import { playSound } from "@/lib/sounds";
 export type PopupData =
   | { kind: "points"; delta: number; id: number }
   | { kind: "food"; id: number }
-  | { kind: "info"; text: string; id: number };
+  | { kind: "info"; text: string; tone?: "green" | "red"; id: number };
 
 const played = new WeakSet<PopupData>();
 
@@ -17,6 +17,7 @@ export default function Popup({ data, onDone }: { data: PopupData | null; onDone
     played.add(data);
     if (data.kind === "points") playSound(data.delta > 0 ? "gain" : "loss");
     else if (data.kind === "food") playSound("food");
+    else if (data.tone) playSound(data.tone === "green" ? "gain" : "loss");
   }, [data]);
 
   useEffect(() => {
@@ -39,7 +40,7 @@ export default function Popup({ data, onDone }: { data: PopupData | null; onDone
     cls += " popup-yellow";
     big = "Buon appetito!";
   } else {
-    cls += " popup-yellow";
+    cls += data.tone ? ` popup-${data.tone}` : " popup-yellow";
     big = data.text;
   }
 

@@ -7,6 +7,7 @@ import Manage from "./Manage";
 import LogoutButton from "./LogoutButton";
 import ChangePassword from "./ChangePassword";
 import SoundToggle from "./SoundToggle";
+import PrizeWatcher from "./PrizeWatcher";
 import { installAutoUnlock } from "@/lib/sounds";
 import { can, kindLabel, type AdminKind } from "@/lib/roles";
 
@@ -58,6 +59,8 @@ export default function AdminApp({ adminName, kind, isMain }: { adminName: strin
           {tab === "manage" && canManage && <Manage />}
         </div>
       )}
+      {/* Avviso quando qualcuno vince la caccia al tesoro (tutti tranne il cuoco) */}
+      {kind !== "cuoco" && <PrizeWatcher />}
     </div>
   );
 }

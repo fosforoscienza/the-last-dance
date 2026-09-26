@@ -40,6 +40,18 @@ Viene mostrato nel footer con i colori originali.
 Esempio: [`public/esempio-utenti.csv`](public/esempio-utenti.csv).
 L'utente accede con il nome (maiuscole/minuscole indifferenti) e la password del CSV.
 
+## 5. Caccia al tesoro
+
+I giocatori aprono la sezione con il pulsante 🗺️, scansionano i QR nascosti e rispondono alle domande:
+ogni risposta esatta mette a fuoco il simbolo dell'anno corrispondente. Chi li trova tutti e 10 vince il
+super premio, e giostrai, jolly e direttori ricevono un avviso con il suo nome.
+
+- **QR code**: in [`caccia-al-tesoro/qr/`](caccia-al-tesoro/qr/README.md), chiamati `1.png` … `10.png`.
+  Il contenuto dei QR è libero: l'app lo legge dalle immagini (la cartella non è pubblica).
+- **Simboli**: in [`public/caccia-al-tesoro/simboli/`](public/caccia-al-tesoro/simboli/README.md), `1.png` … `10.png`, nitidi (la sfocatura la fa l'app).
+- **Domande e risposte**: in [`lib/treasure-questions.ts`](lib/treasure-questions.ts).
+- **Database**: riesegui [`supabase/schema.sql`](supabase/schema.sql) per creare le tabelle `treasure_found` e `treasure_winners`.
+
 ## Sviluppo
 
 ```bash

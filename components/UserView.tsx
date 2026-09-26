@@ -9,13 +9,16 @@ import Popup from "./Popup";
 import LogoutButton from "./LogoutButton";
 import Leaderboard from "./Leaderboard";
 import SoundToggle from "./SoundToggle";
+import Treasure from "./Treasure";
 import { installAutoUnlock } from "@/lib/sounds";
 import { usePopupQueue } from "@/lib/usePopupQueue";
 
-export default function UserView({ initial }: { initial: Player }) {
+export default function UserView({ initial, treasureFound }: { initial: Player; treasureFound: number[] }) {
   const [player, setPlayer] = useState<Player>(initial);
   const [bump, setBump] = useState(0);
   const [showBoard, setShowBoard] = useState(false);
+  const [showTreasure, setShowTreasure] = useState(false);
+  const [found, setFound] = useState<number[]>(treasureFound);
   useEffect(() => installAutoUnlock(), []);
   const last = useRef<Player>(initial);
   const { current, push, done } = usePopupQueue();
@@ -74,6 +77,9 @@ export default function UserView({ initial }: { initial: Player }) {
         </div>
         <div className="row">
           <SoundToggle />
+          <button className="btn btn-ghost btn-small" onClick={() => setShowTreasure(true)} aria-label="Caccia al tesoro">
+            🗺️
+          </button>
           <button className="btn btn-ghost btn-small" onClick={() => setShowBoard(true)} aria-label="Classifica">
             🏆
           </button>
@@ -114,6 +120,8 @@ export default function UserView({ initial }: { initial: Player }) {
           <Leaderboard highlightId={player.id} highlightTeam={player.team || undefined} />
         </div>
       )}
+
+      {showTreasure && <Treasure found={found} onFound={setFound} onClose={() => setShowTreasure(false)} />}
 
       <Popup data={current} onDone={done} />
     </div>

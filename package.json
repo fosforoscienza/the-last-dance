@@ -12,8 +12,11 @@
     "@supabase/supabase-js": "^2.117.0",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.12",
+    "jpeg-js": "^0.4.4",
+    "jsqr": "^1.4.0",
     "next": "^16.3.6",
     "papaparse": "^5.7.0",
+    "pngjs": "^7.0.0",
     "qr-scanner": "^1.4.2",
     "qrcode.react": "^4.2.0",
     "react": "^19.3.0",
@@ -23,6 +26,7 @@
   "devDependencies": {
     "@types/node": "^22.20.4",
     "@types/papaparse": "^5.5.2",
+    "@types/pngjs": "^6.0.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "typescript": "^5.9.3"

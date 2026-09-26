@@ -126,7 +126,7 @@ function soft(c: AudioContext, freq: number, at: number, length = 0.35, volume =
 
 const NOTE = { C5: 523.25, D5: 587.33, E5: 659.25, G5: 783.99, A5: 880, C6: 1046.5, E6: 1318.5, G6: 1568, C7: 2093 };
 
-export type SoundKind = "gain" | "loss" | "food";
+export type SoundKind = "gain" | "loss" | "food" | "prize";
 
 export function playSound(kind: SoundKind) {
   if (isMuted()) return;
@@ -142,6 +142,14 @@ export function playSound(kind: SoundKind) {
     // due note che scendono
     soft(c, NOTE.G5, t);
     soft(c, NOTE.D5, t + 0.18, 0.5);
+  } else if (kind === "prize") {
+    // fanfara del super premio: arpeggio che sale due volte e accordo finale
+    [NOTE.C5, NOTE.E5, NOTE.G5, NOTE.C6].forEach((f, i) => bell(c, f, t + i * 0.1, 0.2, 0.7));
+    [NOTE.E6, NOTE.G6, NOTE.C7].forEach((f, i) => bell(c, f, t + 0.45 + i * 0.1, 0.22, 0.8));
+    bell(c, NOTE.C6, t + 0.85, 0.2, 2);
+    bell(c, NOTE.E6, t + 0.85, 0.2, 2);
+    bell(c, NOTE.G6, t + 0.85, 0.2, 2);
+    bell(c, NOTE.C7, t + 0.85, 0.28, 2.2);
   } else {
     // arpeggio "buon appetito"
     bell(c, NOTE.C6, t, 0.22, 0.8);
@@ -150,5 +158,6 @@ export function playSound(kind: SoundKind) {
     bell(c, NOTE.C7, t + 0.36, 0.28, 1.6);
     bell(c, NOTE.G6, t + 0.36, 0.12, 1.6);
   }
-  if (navigator.vibrate) navigator.vibrate(kind === "loss" ? [80, 60, 80] : kind === "food" ? [40, 40, 40, 40, 120] : 120);
+  const pattern = { gain: 120, loss: [80, 60, 80], food: [40, 40, 40, 40, 120], prize: [100, 60, 100, 60, 300] }[kind];
+  if (navigator.vibrate) navigator.vibrate(pattern);
 }
